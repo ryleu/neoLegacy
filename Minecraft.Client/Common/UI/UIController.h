@@ -262,6 +262,7 @@ public:
 	// INPUT
 private:
 	void tickInput();
+	void UpdateCursorIcon(UIControl *hitCtrl);
 	void handleInput();
 	void handleKeyPress(unsigned int iPad, unsigned int key);
 
