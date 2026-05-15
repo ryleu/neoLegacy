@@ -16,7 +16,7 @@ protected:
 public:
     static LayerArray getDefaultLayers(int64_t seed, LevelType *levelType, void* superflatConfig = nullptr);
     Layer(int64_t seedMixup);
-    virtual void init(uint32_t seed);
+    virtual void init(int64_t seed);
     bool isOcean(int biomeId);
     bool isSame(int biomeIdA, int biomeIdB);
     virtual void initRandom(int64_t x, int64_t y);

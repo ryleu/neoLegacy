@@ -11,7 +11,7 @@ public:
     RegionHillsLayer(int64_t seed, shared_ptr<Layer> parent);
     RegionHillsLayer(int64_t seed, shared_ptr<Layer> parent, shared_ptr<Layer> riverNoise, int64_t seedMixup);
 
-    virtual void init(uint32_t seed) override;
+    virtual void init(int64_t seed) override;
     virtual intArray getArea(int xo, int yo, int w, int h) override;
 
 private:
