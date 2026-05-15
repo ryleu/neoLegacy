@@ -63,15 +63,15 @@ void TaigaBiome::decorate(Level *level, Random *random, int xo, int zo)
 
             mossyBoulder.place(level, random, x, y, z);
         }
-    }
 
-    DOUBLE_PLANT_GENERATOR->setPlantType(TallGrass2::LARGE_FERN);
-    for (int i = 0; i < 7; ++i)
-    {
-        int x = xo + random->nextInt(16) + 8;
-        int z = zo + random->nextInt(16) + 8;
-        int y = random->nextInt(level->getHeightmap(x, z) + 32);
-        DOUBLE_PLANT_GENERATOR->place(level, random, x, y, z);
+        DOUBLE_PLANT_GENERATOR->setPlantType(TallGrass2::LARGE_FERN);
+        for (int i = 0; i < 7; ++i)
+        {
+            int x = xo + random->nextInt(16) + 8;
+            int z = zo + random->nextInt(16) + 8;
+            int y = random->nextInt(level->getHeightmap(x, z) + 32);
+            DOUBLE_PLANT_GENERATOR->place(level, random, x, y, z);
+        }
     }
 
     Biome::decorate(level, random, xo, zo);

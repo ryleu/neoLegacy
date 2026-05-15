@@ -34,9 +34,10 @@ bool DoublePlantFeature::place(Level* level, Random* rand, int x, int y, int z)
 
         
         level->setTileAndData(bx, by,     bz, Tile::tallgrass2_Id, m_plantType,                    0);
-    level->setTileAndData(bx, by + 1, bz, Tile::tallgrass2_Id, TallGrass2::UPPER_BIT | m_plantType, 0);
+        level->setTileAndData(bx, by + 1, bz, Tile::tallgrass2_Id, TallGrass2::UPPER_BIT | m_plantType, 0);
 
         placed = true;
+        break;
     }
 
     return placed;
