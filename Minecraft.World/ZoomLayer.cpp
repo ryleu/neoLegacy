@@ -53,32 +53,21 @@ int ZoomLayer::random(int a, int b)
 
 int ZoomLayer::random(int a, int b, int c, int d)
 {
-	if (b == c && c == d) return b;
-	if (a == b && a == c) return a;
-	if (a == b && a == d) return a;
-	if (a == c && a == d) return a;
-
-	if (a == b && c != d) return a;
-	if (a == c && b != d) return a;
-	if (a == d && b != c) return a;
-
-	if (b == a && c != d) return b;
-	if (b == c && a != d) return b;
-	if (b == d && a != c) return b;
-
-	if (c == a && b != d) return c;
-	if (c == b && a != d) return c;
-	if (c == d && a != b) return c;
-
-	if (d == a && b != c) return c;
-	if (d == b && a != c) return c;
-	if (d == c && a != b) return c;
-
-	int s = nextRandom(4);
-	if (s == 0) return a;
-	if (s == 1) return b;
-	if (s == 2) return c;
-	return d;
+    
+    if (b == c && c == d) return b;
+    if (a == b && (a == c || a == d || c != d)) return a;
+    if (a == c && (a == d || b != d)) return a;
+    if (a == d && b != c) return a;  
+    if (b == c && a != d) return b;
+    if (b == d && a != c) return b;
+    if (c == d && a != b) return c;
+    
+   
+    int s = nextRandom(4);
+    if (s == 0) return a;
+    if (s == 1) return b;
+    if (s == 2) return c;
+    return d;
 }
 
 shared_ptr<Layer>ZoomLayer::zoom(int64_t seed, shared_ptr<Layer> sup, int64_t seedMixup, int count)

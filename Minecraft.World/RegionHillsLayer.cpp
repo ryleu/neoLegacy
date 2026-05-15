@@ -17,7 +17,7 @@ RegionHillsLayer::RegionHillsLayer(int64_t seed, shared_ptr<Layer> parent, share
 	this->riverNoise = riverNoise;
 }
 
-void RegionHillsLayer::init(int64_t seed)
+void RegionHillsLayer::init(uint32_t seed)
 {
 	Layer::init(seed);
 	if (riverNoise != nullptr)

@@ -21,48 +21,40 @@ libdivide::divider<long long> fast_d10(10);
 
 LayerArray Layer::getDefaultLayers(int64_t seed, LevelType* levelType, void* superflatConfig)
 {
-    shared_ptr<Layer> islandLayer = std::make_shared<IslandLayer>(seed, 1);
-    islandLayer = std::make_shared<FuzzyZoomLayer>(seed, islandLayer, 0x7D0);
-    islandLayer = std::make_shared<AddIslandLayer>(seed, islandLayer, 1);
-    islandLayer = std::make_shared<ZoomLayer>(seed, islandLayer, 0x7D1);
-    islandLayer = std::make_shared<AddIslandLayer>(seed, islandLayer, 2);
-    islandLayer = std::make_shared<AddIslandLayer>(seed, islandLayer, 0x32);
-    islandLayer = std::make_shared<AddIslandLayer>(seed, islandLayer, 0x46);
-    islandLayer = std::make_shared<RemoveTooMuchOceanLayer>(seed, islandLayer, 2);
-    islandLayer = std::make_shared<AddSnowLayer>(seed, islandLayer, 2);
-    islandLayer = std::make_shared<AddIslandLayer>(seed, islandLayer, 3);
-    islandLayer = std::make_shared<AddEdgeLayer>(seed, islandLayer, 2, 0);
-    islandLayer = std::make_shared<AddEdgeLayer>(seed, islandLayer, 2, 1);
-    islandLayer = std::make_shared<AddEdgeLayer>(seed, islandLayer, 3, 2);
-    islandLayer = std::make_shared<ZoomLayer>(seed, islandLayer, 0x7D2);
-    islandLayer = std::make_shared<ZoomLayer>(seed, islandLayer, 0x7D3);
-    islandLayer = std::make_shared<AddIslandLayer>(seed, islandLayer, 4);
-    
-        
-
-    islandLayer = std::make_shared<DeepOceanLayer>(seed, islandLayer, 4);
+    shared_ptr<Layer> islandLayer = make_shared<IslandLayer>(seed, 1);
+    islandLayer = make_shared<FuzzyZoomLayer>(seed, islandLayer, 0x7D0);
+    islandLayer = make_shared<AddIslandLayer>(seed, islandLayer, 1);
+    islandLayer = make_shared<ZoomLayer>(seed, islandLayer, 0x7D1);
+    islandLayer = make_shared<AddIslandLayer>(seed, islandLayer, 2);
+    islandLayer = make_shared<AddIslandLayer>(seed, islandLayer, 0x32);
+    islandLayer = make_shared<AddIslandLayer>(seed, islandLayer, 0x46);
+    islandLayer = make_shared<RemoveTooMuchOceanLayer>(seed, islandLayer, 2);
+    islandLayer = make_shared<AddSnowLayer>(seed, islandLayer, 2);
+    islandLayer = make_shared<AddIslandLayer>(seed, islandLayer, 3);
+    islandLayer = make_shared<AddEdgeLayer>(seed, islandLayer, 2, 0);
+    islandLayer = make_shared<AddEdgeLayer>(seed, islandLayer, 2, 1);
+    islandLayer = make_shared<AddEdgeLayer>(seed, islandLayer, 3, 2);
+    islandLayer = make_shared<ZoomLayer>(seed, islandLayer, 0x7D2);
+    islandLayer = make_shared<ZoomLayer>(seed, islandLayer, 0x7D3);
+    islandLayer = make_shared<AddIslandLayer>(seed, islandLayer, 4);
+    islandLayer = make_shared<DeepOceanLayer>(seed, islandLayer, 4);
 
     shared_ptr<Layer> baseLayer = ZoomLayer::zoom(seed, islandLayer, 0x3E8, 0);
 
     int zoomLevel = 4;
     int riverZoomCount = 4;
-  
+
     if (levelType == LevelType::lvl_customized && superflatConfig != nullptr)
     {
         auto settings = CustomizableSourceSettings::Builder::build(
             CustomizableSourceSettings::Builder::fromString(superflatConfig));
-          
         zoomLevel = settings->getBiomeSize();
         riverZoomCount = settings->getRiverSize();
-                                                                                     
     }
-
     if (levelType == LevelType::lvl_largeBiomes)
         zoomLevel = 6;
 
-
     shared_ptr<Layer> riverInit = make_shared<RiverInitLayer>(seed, baseLayer, 0x64);
-
     shared_ptr<Layer> hillsNoise = ZoomLayer::zoom(seed, riverInit, 0x3E8, 2);
 
     shared_ptr<Layer> riverLayerFinal = ZoomLayer::zoom(seed, riverInit, 0x3E8, 2);
@@ -71,7 +63,7 @@ LayerArray Layer::getDefaultLayers(int64_t seed, LevelType* levelType, void* sup
     riverLayerFinal = make_shared<SmoothLayer>(seed, riverLayerFinal, 0x3E8);
 
     shared_ptr<Layer> biomeLayer = make_shared<BiomeInitLayer>(seed, baseLayer, 0xC8, levelType, superflatConfig);
-    biomeLayer = ZoomLayer::zoom(seed, biomeLayer, 0x3E8, 2);
+    
     biomeLayer = make_shared<BiomeEdgeLayer>(seed, biomeLayer, 0x3E8);
     biomeLayer = make_shared<RegionHillsLayer>(seed, biomeLayer, hillsNoise, 0x3E8);
     biomeLayer = make_shared<RareBiomeSpotLayer>(seed, biomeLayer, 0x3E9);
@@ -79,15 +71,12 @@ LayerArray Layer::getDefaultLayers(int64_t seed, LevelType* levelType, void* sup
     for (int i = 0; i < zoomLevel; ++i)
     {
         biomeLayer = make_shared<ZoomLayer>(seed, biomeLayer, 0x3E8 + i);
-
         if (i == 0)
         {
             biomeLayer = make_shared<AddIslandLayer>(seed, biomeLayer, 3);
             biomeLayer = make_shared<AddMushroomIslandLayer>(seed, biomeLayer, 5);
         }
-
-       
-        if (zoomLevel == 1||i == 1)
+        if (zoomLevel == 1 || i == 1)
         {
             biomeLayer = make_shared<GrowMushroomIslandLayer>(seed, biomeLayer, 5);
             biomeLayer = make_shared<ShoreLayer>(seed, biomeLayer, 0x3E8);
@@ -95,7 +84,6 @@ LayerArray Layer::getDefaultLayers(int64_t seed, LevelType* levelType, void* sup
     }
 
     biomeLayer = make_shared<SmoothLayer>(seed, biomeLayer, 0x3E8);
-
     shared_ptr<Layer> mixed = make_shared<RiverMixerLayer>(seed, biomeLayer, riverLayerFinal, 0x64);
     shared_ptr<Layer> voronoi = make_shared<VoronoiZoom>(seed, mixed, 0xA);
 
@@ -109,73 +97,78 @@ LayerArray Layer::getDefaultLayers(int64_t seed, LevelType* levelType, void* sup
     return result;
 }
 
-Layer::Layer(int64_t seedMixup)
+Layer::Layer(int64_t s)
 {
-    parent = nullptr;
-
-    this->seedMixup = seedMixup;
-    this->seedMixup *= this->seedMixup * 6364136223846793005l + 1442695040888963407l;
-    this->seedMixup += seedMixup;
-    this->seedMixup *= this->seedMixup * 6364136223846793005l + 1442695040888963407l;
-    this->seedMixup += seedMixup;
-    this->seedMixup *= this->seedMixup * 6364136223846793005l + 1442695040888963407l;
-    this->seedMixup += seedMixup;
+    
+    int64_t sm = (int64_t)(int32_t)s;  
+    
+    int64_t a = sm * (0x5851F42D4C957F2DLL * sm + 0x14057B7EF767814FLL) + sm;
+    int64_t b = (0x5851F42D4C957F2DLL * a + 0x14057B7EF767814FLL) * a + sm;
+    this->seedMixup = b * (0x5851F42D4C957F2DLL * b + 0x14057B7EF767814FLL) + sm;
+    
+    this->parent = nullptr;
+    this->seed = 0;
+    this->rval = 0;
 }
 
 void Layer::initRandom(int64_t x, int64_t y)
 {
-    rval = seed;
-    rval *= rval * 6364136223846793005L  + 1442695040888963407L;
-    rval += x;
-    rval *= rval * 6364136223846793005L  + 1442695040888963407L;
-    rval += y;
-    rval *= rval * 6364136223846793005L  + 1442695040888963407L;
-    rval += x;
-    rval *= rval * 6364136223846793005L  + 1442695040888963407L;
-    rval += y;
+    
+    int64_t xi = (int64_t)(int32_t)x;
+    int64_t yi = (int64_t)(int32_t)y;
+
+    int64_t v4 = (0x5851F42D4C957F2DLL * seed + 0x14057B7EF767814FLL) * seed + xi;
+
+    uint32_t v5 = 1284865837u * (uint32_t)(v4 * (1284865837LL * (int32_t)v4 - 144211633LL) + yi) - 144211633u;
+
+    int64_t paired = (int64_t)(((uint64_t)v5 << 32) | (uint64_t)v5);
+    int64_t v6 = paired * (v4 * (0x5851F42D4C957F2DLL * v4 + 0x14057B7EF767814FLL) + yi) + xi;
+
+    uint32_t lo = 1284865837u * (uint32_t)v6 - 144211633u;
+    int64_t paired2 = (int64_t)(((uint64_t)lo << 32) | (uint64_t)lo);
+    rval = paired2 * v6 + yi;
 }
 
 int Layer::nextRandom(int max)
 {
-#ifdef __PSVITA__
-    int result;
-    long long temp = rval;
-    temp >>= 24;
-    if (max == 2)
-        result = temp - (temp / fast_d2) * 2;
-    else if (max == 3)
-        result = temp - (temp / fast_d3) * 3;
-    else if (max == 4)
-        result = temp - (temp / fast_d4) * 4;
-    else if (max == 5)
-        result = temp - (temp / fast_d5) * 5;
-    else if (max == 6)
-        result = temp - (temp / fast_d6) * 6;
-    else if (max == 7)
-        result = temp - (temp / fast_d7) * 7;
-    else if (max == 10)
-        result = temp - (temp / fast_d10) * 10;
-    else
-        result = temp - (temp / max) * max;
-#else
-    int result = static_cast<int>((rval >> 24) % max);
-#endif
+    
+    int32_t hi = (int32_t)(rval >> 32);
+    int temp   = hi >> 24;
+    int result = temp % max;
     if (result < 0) result += max;
-    rval *= rval * 6364136223846793005L  + 1442695040888963407L;
-    rval += seed;
+
+    
+    int64_t v  = rval;
+    int64_t lo = (int64_t)(int32_t)(
+                     (int32_t)v * (1284865837 * (int32_t)v - 144211633)
+                     + (int32_t)seed);
+    int64_t hi64 = v * (0x5851F42D4C957F2DLL * v + 0x14057B7EF767814FLL) + seed;
+
+    rval = (hi64 & 0xFFFFFFFF00000000LL) | (uint32_t)lo;
+
     return result;
 }
 
-void Layer::init(int64_t seed)
+void Layer::init(uint32_t seed)
 {
-    this->seed = seed;
-    if (parent != nullptr) parent->init(seed);
-    this->seed *= this->seed * 6364136223846793005L  + 1442695040888963407L;
-    this->seed += seedMixup;
-    this->seed *= this->seed * 6364136223846793005L  + 1442695040888963407L;
-    this->seed += seedMixup;
-    this->seed *= this->seed * 6364136223846793005L  + 1442695040888963407L;
-    this->seed += seedMixup;
+    if (parent != nullptr)
+        parent->init(seed);
+
+    uint32_t lo = seed;
+    int64_t m = this->seedMixup;  
+
+    
+    uint32_t v12 = lo * (1284865837u * lo - 144211633u);
+    int64_t  sum = (int64_t)(int32_t)(v12) + m; 
+
+    
+    int64_t step1 = sum * (1284865837LL * (int32_t)sum - 144211633LL);
+    int64_t sum2  = step1 + m;
+
+    
+    int64_t step2 = sum2 * (0x5851F42D4C957F2DLL * sum2 + 0x14057B7EF767814FLL) + m;
+
+    this->seed = step2;
 }
 
 bool Layer::isOcean(int biomeId)
