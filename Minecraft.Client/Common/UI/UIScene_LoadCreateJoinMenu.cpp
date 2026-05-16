@@ -50,7 +50,10 @@
 
 #endif
 
-
+#include "UIScene_MinigamesMenu.h"
+#include "UIScene_MinigamesCreateMenu.h"
+#include "UIScene_MinigamesJoinMenu.h"
+#include "UIScene_MinigamesMapSelectMenu.h"
 
 #ifdef _WINDOWS64
 

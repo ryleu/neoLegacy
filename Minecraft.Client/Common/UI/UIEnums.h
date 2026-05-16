@@ -102,6 +102,10 @@ enum EUIScene
 	eUIScene_FireworksMenu,
 	eUIScene_BookMenu,
 	eUIScene_AchievementsMenu,
+	 eUIScene_MinigamesMenu,
+	eUIScene_MinigamesCreateMenu,
+	eUIScene_MinigamesJoinMenu,
+	eUIScene_MinigamesMapSelectMenu,
 #ifdef _XBOX
 //	eUIScene_TransferToXboxOne,
 #endif

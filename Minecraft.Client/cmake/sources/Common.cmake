@@ -325,6 +325,14 @@ set(_MINECRAFT_CLIENT_COMMON_COMMON_UI_ALL_PLATFORMS
   "${BASE_DIR}/UI/UIControl_AchievementsList.h"
   "${BASE_DIR}/UI/UIEnums.h"
   "${BASE_DIR}/UI/UIStructs.h"
+  "${BASE_DIR}/UI/UIScene_MinigamesMenu.cpp"
+  "${BASE_DIR}/UI/UIScene_MinigamesMenu.h"
+  "${BASE_DIR}/UI/UIScene_MinigamesCreateMenu.cpp"
+  "${BASE_DIR}/UI/UIScene_MinigamesCreateMenu.h"
+  "${BASE_DIR}/UI/UIScene_MinigamesJoinMenu.cpp"
+  "${BASE_DIR}/UI/UIScene_MinigamesJoinMenu.h"
+  "${BASE_DIR}/UI/UIScene_MinigamesMapSelectMenu.cpp"
+  "${BASE_DIR}/UI/UIScene_MinigamesMapSelectMenu.h"
 )
 source_group("Common/UI/All Platforms" FILES ${_MINECRAFT_CLIENT_COMMON_COMMON_UI_ALL_PLATFORMS})
 

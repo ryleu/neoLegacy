@@ -1,0 +1,65 @@
+﻿<GameMode xmlns="Schema.xsd" version="5.1" name="Lobby" id="0">
+
+  <PlayerGameType>Lobby</PlayerGameType>
+  
+	<TeamBasedSpawn>false</TeamBasedSpawn>
+  
+  <DestroyPermissions mode="WhiteList"/>
+  <PlacePermissions mode="WhiteList"/>
+  <UsePermissions mode="WhiteList"/>
+  <BlockUsePermissions mode="WhiteList">
+    <!-- Oak Door -->
+    <Exception id="64"/>
+    <!-- Iron Door -->
+    <Exception id="71" />
+    <!-- Spruce Door -->
+    <Exception id="193" />
+    <!-- Birch Door -->
+    <Exception id="194" />
+    <!-- Jungle Door -->
+    <Exception id="195" />
+    <!-- Acacia Door -->
+    <Exception id="196" />
+    <!-- Dark Oak Door -->
+    <Exception id="197" />
+
+    <!-- Iron TrapDoor -->
+    <Exception id="167" />
+    <!-- Wooden TrapDoor -->
+    <Exception id="96" />
+
+    <!-- Stone Button -->
+    <Exception id="77" />
+    <!-- Woodean Button -->
+    <Exception id="143" />
+
+    <!-- Lever -->
+    <Exception id="69" />
+
+    <!-- Chest -->
+    <Exception id="54" />
+    <!-- Ender chest -->
+    <Exception id="130" />
+    <!-- Trapped Chest -->
+    <Exception id="146" />
+	<!-- Note Block -->
+    <Exception id="25" />
+  </BlockUsePermissions>
+
+  <Timers>
+    <!-- 4J-JEV: Yay Timers! Measured in seconds. -->
+
+    <!-- Time spent in lobby before selecting gamemode. -->
+    <GameInitialise duration="15" announceEvery="1"/>
+
+    <!-- Time spent in lobby between rounds. -->
+    <LobbyInterval duration="60" announceEvery="1"/>
+  </Timers>
+
+  <Sounds>
+    <LobbyTimer forLast="5"/>
+  </Sounds>
+
+  <ShowNametags>true</ShowNametags>
+
+</GameMode>

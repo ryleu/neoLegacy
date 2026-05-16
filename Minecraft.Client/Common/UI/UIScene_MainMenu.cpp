@@ -34,15 +34,14 @@ UIScene_MainMenu::UIScene_MainMenu(int iPad, void *initData, UILayer *parentLaye
 
 
 	m_buttons[static_cast<int>(eControl_PlayGame)].init(IDS_PLAY_GAME,eControl_PlayGame);
-	m_buttons[(int)eControl_MiniGames].init(L"Mini Games",eControl_MiniGames);
-
 #ifdef _XBOX_ONE
 	if(!ProfileManager.IsFullVersion()) m_buttons[(int)eControl_PlayGame].setLabel(IDS_PLAY_TRIAL_GAME);
 	app.SetReachedMainMenu();
 #endif
 
+	m_buttons[(int)eControl_MiniGames].init(IDS_MINIGAMES,eControl_MiniGames);
 	m_buttons[static_cast<int>(eControl_Leaderboards)].init(IDS_LEADERBOARDS,eControl_Leaderboards);
-	m_buttons[static_cast<int>(eControl_Achievements)].init( (UIString)IDS_ACHIEVEMENTS,eControl_Achievements);
+	m_buttons[static_cast<int>(eControl_Achievements)].init((UIString)IDS_ACHIEVEMENTS,eControl_Achievements);
 	m_buttons[static_cast<int>(eControl_HelpAndOptions)].init(IDS_HELP_AND_OPTIONS,eControl_HelpAndOptions);
 	if(ProfileManager.IsFullVersion())
 	{
@@ -182,8 +181,14 @@ void UIScene_MainMenu::handleGainFocus(bool navBack)
 		
 	if(navBack && ProfileManager.IsFullVersion())
 	{
-		// Replace the Unlock Full Game with Downloadable Content
-		m_buttons[static_cast<int>(eControl_UnlockOrDLC)].setLabel(IDS_DOWNLOADABLECONTENT);
+		if(ProfileManager.IsFullVersion())
+		{
+			m_buttons[static_cast<int>(eControl_UnlockOrDLC)].setLabel(app.GetString(IDS_DOWNLOADABLECONTENT));
+		}
+		else
+		{
+			m_buttons[static_cast<int>(eControl_UnlockOrDLC)].setLabel(app.GetString(IDS_UNLOCK_FULL_GAME));
+		}
 	}
 
 #if TO_BE_IMPLEMENTED
@@ -329,33 +334,19 @@ void UIScene_MainMenu::handlePress(F64 controlId, F64 childId)
 		signInReturnedFunc = &UIScene_MainMenu::CreateLoad_SignInReturned;
 #endif		
 		break;
-    case eControl_MiniGames:
-	#ifdef __ORBIS__
-		{
-			m_bIgnorePress=true;
-
-			//CD - Added for audio
-			ui.PlayUISFX(eSFX_Press);
-
-			ProfileManager.RefreshChatAndContentRestrictions(RefreshChatAndContentRestrictionsReturned_PlayGame, this);
-		}
-#else
-		m_eAction=eAction_RunGame;
+	case eControl_MiniGames:
 		//CD - Added for audio
 		ui.PlayUISFX(eSFX_Press);
-
-		signInReturnedFunc = &UIScene_MainMenu::CreateLoad_SignInReturned;
-#endif		
+		m_eAction=eAction_RunMiniGames;
+		RunAction(primaryPad);
+		return;
 		break;
 	case eControl_Leaderboards:
 		//CD - Added for audio
 		ui.PlayUISFX(eSFX_Press);
-#ifdef __ORBIS__
-		ProfileManager.RefreshChatAndContentRestrictions(RefreshChatAndContentRestrictionsReturned_Leaderboards, this);
-#else
+
 		m_eAction=eAction_RunLeaderboards;
 		signInReturnedFunc = &UIScene_MainMenu::Leaderboards_SignInReturned;
-#endif
 		break;
 	case eControl_Achievements:
 		//CD - Added for audio
@@ -409,7 +400,7 @@ void UIScene_MainMenu::handlePress(F64 controlId, F64 childId)
 		break;
 #endif
 
-	default:	DEBUG_BREAK();
+	default:	__debugbreak();
 	}
 	
 	bool confirmUser = false;
@@ -446,6 +437,9 @@ void UIScene_MainMenu::RunAction(int iPad)
 	{
 	case eAction_RunGame:
 		RunPlayGame(iPad);
+		break;
+	case eAction_RunMiniGames:
+		RunMiniGames(iPad);
 		break;
 	case eAction_RunLeaderboards:
 		RunLeaderboards(iPad);
@@ -2040,7 +2034,15 @@ void UIScene_MainMenu::RunAchievements(int iPad)
 		XShowAchievementsUI( iPad );
 	}
 #endif
-	ui.NavigateToScene(iPad, eUIScene_AchievementsMenu);
+}
+
+void UIScene_MainMenu::RunMiniGames(int iPad)
+{
+	ProfileManager.SetLockedProfile(iPad);
+#ifdef _XBOX_ONE
+	ui.ShowPlayerDisplayname(true);
+#endif
+	proceedToScene(iPad, eUIScene_MinigamesMenu);
 }
 
 void UIScene_MainMenu::RunHelpAndOptions(int iPad)
@@ -2149,7 +2151,14 @@ void UIScene_MainMenu::LoadTrial(void)
 
 void UIScene_MainMenu::handleUnlockFullVersion()
 {
-	m_buttons[static_cast<int>(eControl_UnlockOrDLC)].setLabel(IDS_DOWNLOADABLECONTENT,true);
+	if(ProfileManager.IsFullVersion())
+	{
+		m_buttons[static_cast<int>(eControl_UnlockOrDLC)].setLabel(IDS_DOWNLOADABLECONTENT,true);
+	}
+	else
+	{
+		m_buttons[static_cast<int>(eControl_UnlockOrDLC)].setLabel(IDS_UNLOCK_FULL_GAME,true);
+	}
 }
 
 

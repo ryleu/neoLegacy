@@ -288,6 +288,26 @@ typedef struct _LoadMenuInitData
 } 
 LoadMenuInitData;
 
+enum EMiniGameType
+{
+	eMiniGame_Battle = 0,
+	eMiniGame_Tumble,
+	eMiniGame_Glide,
+};
+
+typedef struct _MiniGamesCreateMenuInitData
+{
+	int iPad;
+	int miniGameType;
+
+	_MiniGamesCreateMenuInitData()
+	{
+		iPad = 0;
+		miniGameType = eMiniGame_Battle;
+	}
+}
+MiniGamesCreateMenuInitData;
+
 // Join Games
 typedef struct _JoinMenuInitData
 {

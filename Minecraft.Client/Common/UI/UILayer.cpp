@@ -4,7 +4,10 @@
 #include "UIScene.h"
 #include "IUIScene_WritingBookMenu.h"
 #include "UIScene_BookAndQuillMenu.h"
-#include "UIScene_AchievementsMenu.h"
+#include "UIScene_MinigamesMenu.h"
+#include "UIScene_MinigamesCreateMenu.h"
+#include "UIScene_MinigamesJoinMenu.h"
+#include "UIScene_MinigamesMapSelectMenu.h"
 
 UILayer::UILayer(UIGroup *parent)
 {
@@ -246,9 +249,6 @@ bool UILayer::NavigateToScene(int iPad, EUIScene scene, void *initData)
 	case eUIScene_Crafting3x3Menu:
 		newScene = new UIScene_CraftingMenu(iPad, initData, this);
 		break;
-	case eUIScene_ClassicCraftingMenu:
-		newScene = new UIScene_ClassicCraftingMenu(iPad, initData, this);
-		break;
 	case eUIScene_TradingMenu:
 		newScene = new UIScene_TradingMenu(iPad, initData, this);
 		break;
@@ -271,9 +271,6 @@ bool UILayer::NavigateToScene(int iPad, EUIScene scene, void *initData)
 		// Help and Options
 	case eUIScene_HelpAndOptionsMenu:
 		newScene = new UIScene_HelpAndOptionsMenu(iPad, initData, this);
-		break;
-	case eUIScene_AchievementsMenu:
-		newScene = new UIScene_AchievementsMenu(iPad, initData, this);
 		break;
 		// Book
 	case eUIScene_BookMenu:
@@ -385,6 +382,22 @@ bool UILayer::NavigateToScene(int iPad, EUIScene scene, void *initData)
 		break;
 	case eUIScene_LoadCreateJoinMenu:
 		newScene = new UIScene_LoadCreateJoinMenu(iPad, initData, this);
+		break;
+	case eUIScene_MinigamesMenu:
+		app.DebugPrintf("[MGDBG] UILayer creating UIScene_MinigamesMenu\n");
+		newScene = new UIScene_MinigamesMenu(iPad, initData, this);
+		break;
+	case eUIScene_MinigamesCreateMenu:
+		app.DebugPrintf("[MGDBG] UILayer creating UIScene_MinigamesCreateMenu\n");
+		newScene = new UIScene_MinigamesCreateMenu(iPad, initData, this);
+		break;
+	case eUIScene_MinigamesJoinMenu:
+		app.DebugPrintf("[MGDBG] UILayer creating UIScene_MinigamesJoinMenu\n");
+		newScene = new UIScene_MinigamesJoinMenu(iPad, initData, this);
+		break;
+	case eUIScene_MinigamesMapSelectMenu:
+		app.DebugPrintf("[MGDBG] UILayer creating UIScene_MinigamesMapSelectMenu\n");
+		newScene = new UIScene_MinigamesMapSelectMenu(iPad, initData, this);
 		break;
 	case eUIScene_LoadMenu:
 		newScene = new UIScene_LoadMenu(iPad, initData, this);

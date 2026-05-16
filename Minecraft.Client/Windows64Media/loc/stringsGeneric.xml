@@ -6614,6 +6614,10 @@ Would you like to install the mash-up pack or texture pack now?</value>
 		<value>When enabled, the game will be an online game.</value>
 	</data>	
 
+	<data name="IDS_GAMEOPTION_PUBLIC">
+		<value>When enabled, Allows players that are not your friends to find and join your game.</value>
+	</data>
+
 	<data name="IDS_GAMEOPTION_INVITEONLY">
 		<value>When enabled, only invited players can join.</value>
 	</data>	
@@ -6621,6 +6625,10 @@ Would you like to install the mash-up pack or texture pack now?</value>
 	<data name="IDS_GAMEOPTION_ALLOWFOF">
 		<value>When enabled, friends of people on your Friends List can join the game.</value>
 	</data>	
+
+	<data name="IDS_GAMEOPTION_SELECTMAPS">
+		<value>Select the maps that you want to play with.</value>
+	</data>
 
 	<data name="IDS_GAMEOPTION_PVP">
 		<value>When enabled, players can inflict damage on other players. Only affects Survival mode.</value>
@@ -7389,6 +7397,18 @@ Would you like to install the mash-up pack or texture pack now?</value>
 		<value>Players</value>
 	</data>	
 
+	<data name="IDS_CREATE">
+		<value>Create</value>
+	</data>	
+
+	<data name="IDS_JOIN">
+		<value>Join</value>
+	</data>	
+
+	<data name="IDS_FRIENDS">
+		<value>Friends</value>
+	</data>
+
 	<data name="IDS_JOIN_GAME">
 		<value>Join Game</value>
 	</data>	
@@ -7404,6 +7424,10 @@ Would you like to install the mash-up pack or texture pack now?</value>
 	<data name="IDS_PLAY_GAME">
 		<value>Play Game</value>
 	</data>	
+
+	<data name="IDS_MINIGAMES">
+		<value>Mini Games</value>
+	</data>
 
 	<data name="IDS_LEADERBOARDS">
 		<value>Leaderboards</value>
@@ -7456,6 +7480,78 @@ Would you like to install the mash-up pack or texture pack now?</value>
 	<data name="IDS_LABEL_FIRE_SPREADS">
 		<value>Fire Spreads:</value>
 	</data>	
+
+	<data name="IDS_BATTLE">
+		<value>Battle</value>
+	</data>
+
+	<data name="IDS_CHECKBOX_PUBLIC_GAME">
+		<value>Public Game</value>
+	</data>
+
+	<data name="IDS_GAMEOPTION_FRIENDSOFRIENDS">
+		<value>Allow friends of friends</value>
+	</data>
+
+	<data name="IDS_GAMEOPTION_INVITEONLY">
+		<value>Invite Only</value>
+	</data>
+
+	<data name="IDS_GAMEOPTION_SELECTMAPS">
+		<value>Select Maps</value>
+	</data>
+
+	<data name="IDS_GAMEOPTION_MOREOPTIONS">
+		<value>More Options</value>
+	</data>
+
+	<data name="IDS_GAMEOPTION_CREATEGAME">
+		<value>Create Game</value>
+	</data>
+
+	<data name="IDS_BATTLE_MODE_COMPETITIVE">
+		<value>Game Type: Competitive</value>
+	</data>
+
+	<data name="IDS_BATTLE_MODE_CUSTOM">
+		<value>Game Type: Custom</value>
+	</data>
+
+	<data name="IDS_BATTLE_MODE_CASUAL">
+		<value>Game Type: Casual</value>
+	</data>
+
+	<data name="IDS_BATTLE_MODE_ANY">
+		<value>Game Type: Any</value>
+	</data>
+
+	<data name="IDS_BATTLE_JOIN_CASUAL_DESC">
+		<value>Join a Casual game, which allows all player skins and spectators appear as Bats.</value>
+	</data>
+
+	<data name="IDS_BATTLE_JOIN_COMPETITIVE_DESC">
+		<value>Join a Competitive game, which doesn't allow player skins that provide an advantage (e.g. being smaller than normal, or not displaying all armor), and spectators are invisible.</value>
+	</data>
+
+	<data name="IDS_BATTLE_JOIN_CUSTOM_DESC">
+		<value>Join a Custom game with your selected Round Length.</value>
+	</data>
+
+	<data name="IDS_BATTLE_JOIN_ANY_DESC">
+		<value>Join any Casual or Competitive game with your selected Round Length.</value>
+	</data>
+
+	<data name="IDS_BATTLE_MODE_COMPETITIVE_DESC">
+		<value>Create a Competitive game, which doesn't allow player skins that provide an advantage (e.g. being smaller than normal, or not displaying all armor), and spectators are invisible.</value>
+	</data>
+
+	<data name="IDS_BATTLE_MODE_CUSTOM_DESC">
+		<value>Create a custom game and modify a variety of settings to create a new game experience.</value>
+	</data>
+
+	<data name="IDS_BATTLE_MODE_CASUAL_DESC">
+		<value>Create a Casual game, which allows all player skins and spectators appear as Bats.</value>
+	</data>
 
 	<data name="IDS_REINSTALL_THEME">
 		<value>Reinstall Theme</value>
