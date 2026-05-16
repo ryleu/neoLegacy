@@ -6,13 +6,12 @@ class LevelType;
 #endif
 class Layer
 {
-private:
-    int64_t seed;               
-protected:
-    shared_ptr<Layer> parent;   
-    int64_t rval;               
-    int64_t seedMixup;          
-                                
+public:
+    int64_t seed;        
+    shared_ptr<Layer> parent;
+    int64_t rval;
+    int64_t seedMixup;
+
 public:
     static LayerArray getDefaultLayers(int64_t seed, LevelType *levelType, void* superflatConfig = nullptr);
     Layer(int64_t seedMixup);

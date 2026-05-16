@@ -101,14 +101,10 @@ LayerArray Layer::getDefaultLayers(int64_t seed, LevelType* levelType, void* sup
 
 Layer::Layer(int64_t s)
 {
-    
-    int64_t sm = (int64_t)(int32_t)s;  
-    
+    int64_t sm = (int64_t)(int32_t)s;
     int64_t a = sm * (0x5851F42D4C957F2DLL * sm + 0x14057B7EF767814FLL) + sm;
     int64_t b = (0x5851F42D4C957F2DLL * a + 0x14057B7EF767814FLL) * a + sm;
     this->seedMixup = b * (0x5851F42D4C957F2DLL * b + 0x14057B7EF767814FLL) + sm;
-    
-     app.DebugPrintf("Layer ctor: s=%lld, seedMixup=%lld\n", s, this->seedMixup);
     this->parent = nullptr;
     this->seed = 0;
     this->rval = 0;
@@ -116,37 +112,35 @@ Layer::Layer(int64_t s)
 
 void Layer::initRandom(int64_t x, int64_t y)
 {
+
+    static bool first = true;
     
+
     int64_t xi = (int64_t)(int32_t)x;
     int64_t yi = (int64_t)(int32_t)y;
 
     int64_t v4 = (0x5851F42D4C957F2DLL * seed + 0x14057B7EF767814FLL) * seed + xi;
-
     uint32_t v5 = 1284865837u * (uint32_t)(v4 * (1284865837LL * (int32_t)v4 - 144211633LL) + yi) - 144211633u;
-
     int64_t paired = (int64_t)(((uint64_t)v5 << 32) | (uint64_t)v5);
     int64_t v6 = paired * (v4 * (0x5851F42D4C957F2DLL * v4 + 0x14057B7EF767814FLL) + yi) + xi;
-
     uint32_t lo = 1284865837u * (uint32_t)v6 - 144211633u;
     int64_t paired2 = (int64_t)(((uint64_t)lo << 32) | (uint64_t)lo);
     rval = paired2 * v6 + yi;
+
+  
 }
 
 int Layer::nextRandom(int max)
 {
-    
     int32_t hi = (int32_t)(rval >> 32);
-    int temp   = hi >> 24;
-    int result = temp % max;
+    int result = (hi >> 24) % max;
     if (result < 0) result += max;
 
-    
     int64_t v  = rval;
     int64_t lo = (int64_t)(int32_t)(
                      (int32_t)v * (1284865837 * (int32_t)v - 144211633)
                      + (int32_t)seed);
     int64_t hi64 = v * (0x5851F42D4C957F2DLL * v + 0x14057B7EF767814FLL) + seed;
-
     rval = (hi64 & 0xFFFFFFFF00000000LL) | (uint32_t)lo;
 
     return result;
@@ -162,7 +156,6 @@ void Layer::init(int64_t seed)
     
     uint32_t v12 = lo * (1284865837u * lo - 144211633u);
     uint32_t sum = v12 + m;
-    
     uint32_t step1 = sum * (1284865837u * sum - 144211633u);
     uint32_t sum2  = step1 + m;
     
@@ -170,8 +163,9 @@ void Layer::init(int64_t seed)
                   * (0x5851F42D4C957F2DLL * (int64_t)(int32_t)sum2 
                      + 0x14057B7EF767814FLL) 
                   + (int64_t)(int32_t)m;
+     static bool first = true;
     
-    app.DebugPrintf("init: seed=%lld, m=%u, result=%lld\n", seed, m, step2);
+
     this->seed = step2;
 }
 
