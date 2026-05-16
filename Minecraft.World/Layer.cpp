@@ -89,8 +89,8 @@ LayerArray Layer::getDefaultLayers(int64_t seed, LevelType* levelType, void* sup
     shared_ptr<Layer> mixed = make_shared<RiverMixerLayer>(seed32, biomeLayer, riverLayerFinal, 0x64);
     shared_ptr<Layer> voronoi = make_shared<VoronoiZoom>(seed32, mixed, 0xA);
 
-    mixed->init(seed);
-    voronoi->init(seed);
+    mixed->init((uint32_t)seed);
+    voronoi->init((uint32_t)seed);
 
     LayerArray result(3, false);
     result[0] = mixed;

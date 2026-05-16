@@ -13,30 +13,57 @@ intArray BiomeEdgeLayer::getArea(int xo, int yo, int w, int h)
     intArray b = parent->getArea(xo - 1, yo - 1, w + 2, h + 2);
     intArray result = IntCache::allocate(w * h);
     int stride = w + 2;
-
     for (int iy = 0; iy < h; ++iy)
     {
         for (int ix = 0; ix < w; ++ix)
         {
             initRandom(ix + xo, iy + yo);
             int center = b[(ix + 1) + (iy + 1) * stride];
+            int n  = b[(ix + 1) + (iy + 0) * stride];
+            int e  = b[(ix + 2) + (iy + 1) * stride];
+            int w1 = b[(ix + 0) + (iy + 1) * stride];
+            int s  = b[(ix + 1) + (iy + 2) * stride];
 
-            if (!checkEdge(b, result, ix, iy, stride, Biome::extremeHills->id, Biome::smallerExtremeHills->id, center) &&
-                !checkEdge(b, result, ix, iy, stride, Biome::mesaPlateauF->id, Biome::mesaPlateau->id, center) &&
-                !checkEdge(b, result, ix, iy, stride, Biome::mesaPlateau->id, Biome::mesaPlateau->id, center) &&
-                !checkEdge(b, result, ix, iy, stride, Biome::megaTaiga->id, Biome::megaTaiga->id, center))
+            if (center == Biome::extremeHills->id)
             {
-               if (center == Biome::desert->id) {
-                    int n = b[(ix + 1) + (iy + 0) * stride];
-                    int e = b[(ix + 2) + (iy + 1) * stride];
-                    int w1 = b[(ix + 0) + (iy + 1) * stride];
-                    int s = b[(ix + 1) + (iy + 2) * stride];
-                    if (n == Biome::iceFlats->id || e == Biome::iceFlats->id || w1 == Biome::iceFlats->id || s == Biome::iceFlats->id) {
-                        center = Biome::extremeHills->id;
-                    }
-               }
-               result[ix + iy * w] = center;
+                if (n != center || e != center || w1 != center || s != center)
+                { result[ix + iy * w] = Biome::smallerExtremeHills->id; continue; }
             }
+            else if (center == Biome::mesaPlateauF->id)
+            {
+                if (n != center || e != center || w1 != center || s != center)
+                { result[ix + iy * w] = Biome::mesaPlateau->id; continue; }
+            }
+            else if (center == Biome::mesaPlateau->id)
+            {
+                if (n != center || e != center || w1 != center || s != center)
+                { result[ix + iy * w] = Biome::mesaPlateau->id; continue; }
+            }
+            else if (center == Biome::megaTaiga->id)
+            {
+                if (n != center || e != center || w1 != center || s != center)
+                { result[ix + iy * w] = Biome::taiga->id; continue; }
+            }
+            else if (center == Biome::desert->id)
+            {
+                if (n == Biome::iceFlats->id || e == Biome::iceFlats->id ||
+                    w1 == Biome::iceFlats->id || s == Biome::iceFlats->id)
+                { result[ix + iy * w] = Biome::smallerExtremeHills->id; continue; }
+            }
+            else if (center == Biome::swampland->id)
+            {
+                int desertId    = Biome::desert->id;
+                int coldTaigaId = Biome::coldTaiga->id;
+                int iceFlatsId  = Biome::iceFlats->id;
+                if (n==desertId||e==desertId||w1==desertId||s==desertId ||
+                    n==coldTaigaId||e==coldTaigaId||w1==coldTaigaId||s==coldTaigaId ||
+                    n==iceFlatsId||e==iceFlatsId||w1==iceFlatsId||s==iceFlatsId)
+                { result[ix + iy * w] = Biome::plains->id; continue; }
+                int jungleId = Biome::jungle->id;
+                if (n==jungleId||e==jungleId||w1==jungleId||s==jungleId)
+                { result[ix + iy * w] = Biome::jungleEdge->id; continue; }
+            }
+            result[ix + iy * w] = center;
         }
     }
     return result;
