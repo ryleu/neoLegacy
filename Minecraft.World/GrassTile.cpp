@@ -122,7 +122,7 @@ void GrassTile::tick(Level *level, int x, int y, int z, Random *random)
 	}
 
   Material* above = level->getMaterial(x, y + 1, z);
-	if (above->isLiquid()) level->setTileAndUpdate(x, y, z, Tile::dirt_Id);
+	if (above->isSolid() || above->isLiquid()) level->setTileAndUpdate(x, y, z, Tile::dirt_Id);
 }
 
 int GrassTile::getResource(int data, Random *random, int playerBonusLevel)
