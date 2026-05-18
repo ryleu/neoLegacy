@@ -231,19 +231,13 @@ bool Layer::isOcean(int biomeId)
 bool Layer::isSame(int biomeIdA, int biomeIdB) {
     if (biomeIdA == biomeIdB) {
         return true;
-    } else {
-        Biome* biome = Biome::getBiome(biomeIdA);
-        Biome* biome2 = Biome::getBiome(biomeIdB);
-        if (biome != nullptr && biome2 != nullptr) {
-            if (biome != Biome::mesaPlateauF && biome != Biome::mesaPlateau) {
-                return biome == biome2 || biome->getBaseBiomeId() == biome2->getBaseBiomeId();
-            } else {
-                return biome2 == Biome::mesaPlateauF || biome2 == Biome::mesaPlateau;
-            }
-        } else {
-            return false;
-        }
     }
+    Biome* biome = Biome::getBiome(biomeIdA);
+    Biome* biome2 = Biome::getBiome(biomeIdB);
+    if (biome != nullptr && biome2 != nullptr) {
+        return biome->isSame(biome2);
+    }
+    return false;
 }
 
 

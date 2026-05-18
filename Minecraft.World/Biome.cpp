@@ -521,8 +521,9 @@ void Biome::buildSurfaceAtDefault(Level *level, Random *random, byte* chunkBlock
 
 bool Biome::isSame(const Biome* other) const
 {
+    if (this == other) return true;
     if (!other) return false;
-    return id == other->id;  
+    return this->getBaseBiomeId() == other->getBaseBiomeId();
 }
 
 int Biome::getTemperatureCategory() const

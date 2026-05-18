@@ -25,10 +25,6 @@ void RegionHillsLayer::init(int64_t seed)
 }
 
 
-bool RegionHillsLayer::biomesEqualOrMesaPlateau(int a, int b)
-{
-	return a == b;
-}
 
 
 intArray RegionHillsLayer::getArea(int xo, int yo, int w, int h)
@@ -143,6 +139,10 @@ intArray RegionHillsLayer::getArea(int xo, int yo, int w, int h)
 							i1 = Biome::forest->id;
 						}
 				}
+				else if (k == Biome::mesaPlateauF->id)
+				{
+					i1 = Biome::mesaPlateau->id;
+				}
 
 				
 
@@ -171,10 +171,10 @@ intArray RegionHillsLayer::getArea(int xo, int yo, int w, int h)
 					int _s = b[x + 1 + (y + 1 + 1) * (w + 2)];
 
 					int neighbours = 0;
-					if (biomesEqualOrMesaPlateau(_n, k)) ++neighbours;
-					if (biomesEqualOrMesaPlateau(_e, k)) ++neighbours;
-					if (biomesEqualOrMesaPlateau(_w, k)) ++neighbours;
-					if (biomesEqualOrMesaPlateau(_s, k)) ++neighbours;
+					if (isSame(_n, k)) ++neighbours;
+					if (isSame(_e, k)) ++neighbours;
+					if (isSame(_w, k)) ++neighbours;
+					if (isSame(_s, k)) ++neighbours;
 
 					result[x + y * w] = (neighbours >= 3) ? i1 : k;
 				}

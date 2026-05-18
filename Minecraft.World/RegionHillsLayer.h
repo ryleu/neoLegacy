@@ -13,7 +13,4 @@ public:
 
     virtual void init(int64_t seed) override;
     virtual intArray getArea(int xo, int yo, int w, int h) override;
-
-private:
-    static bool biomesEqualOrMesaPlateau(int a, int b);
 };
