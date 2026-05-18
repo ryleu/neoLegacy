@@ -15,11 +15,11 @@ void BiomeSource::_init()
     generatorOptions = L"";
     cache = new BiomeCache(this);
     
-    playerSpawnBiomes.push_back(Biome::plains);
     playerSpawnBiomes.push_back(Biome::forest);
+    playerSpawnBiomes.push_back(Biome::plains);
     playerSpawnBiomes.push_back(Biome::taiga);
-    playerSpawnBiomes.push_back(Biome::forestHills);
     playerSpawnBiomes.push_back(Biome::taigaHills);
+    playerSpawnBiomes.push_back(Biome::forestHills);
     playerSpawnBiomes.push_back(Biome::jungle);
     playerSpawnBiomes.push_back(Biome::jungleHills);
 }

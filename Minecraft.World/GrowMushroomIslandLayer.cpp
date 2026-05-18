@@ -16,29 +16,25 @@ intArray GrowMushroomIslandLayer::getArea(int xo, int yo, int w, int h)
     int ph = h + 2;
     intArray p = parent->getArea(px, py, pw, ph);
     intArray result = IntCache::allocate(w * h);
-    int mushroomId = Biome::mushroomIsland->id; 
     for (int y = 0; y < h; y++)
     {
         for (int x = 0; x < w; x++)
         {
-            
             int ul = p[(x + 0) + (y + 0) * pw];
             int ur = p[(x + 2) + (y + 0) * pw];
             int dl = p[(x + 0) + (y + 2) * pw];
             int dr = p[(x + 2) + (y + 2) * pw];
             int c  = p[(x + 1) + (y + 1) * pw];
-            
             int north = p[(x + 1) + (y + 0) * pw];
-            int south = p[(x + 1) + (y + 2) * pw];
-            int west  = p[(x + 0) + (y + 1) * pw];
             int east  = p[(x + 2) + (y + 1) * pw];
-
-            if (ul == mushroomId || ur == mushroomId ||
-                dl == mushroomId || dr == mushroomId ||
-                north == mushroomId || south == mushroomId ||
-                west == mushroomId || east == mushroomId)
+            int south = p[(x + 1) + (y + 2) * pw];
+            if (ul == 14 || ur == 14 || dl == 14 || dr == 14)
             {
-                result[x + y * w] = mushroomId;
+                result[x + y * w] = 14;
+            }
+            else if (north == 14 || east == 14 || south == 14)
+            {
+                result[x + y * w] = 14;
             }
             else
             {

@@ -917,58 +917,54 @@ void ServerLevel::initializeLevel(LevelSettings *settings)
 */
 void ServerLevel::setInitialSpawn(LevelSettings *levelSettings)
 {
-	if (!dimension->mayRespawn())
-	{
-		levelData->setSpawn(0, dimension->getSpawnYPosition(), 0);
-		return;
-	}
+    if (!dimension->mayRespawn())
+    {
+        levelData->setSpawn(0, dimension->getSpawnYPosition(), 0);
+        return;
+    }
 
-	isFindingSpawn = true;
+    isFindingSpawn = true;
 
-	BiomeSource *biomeSource = dimension->biomeSource;
-	vector<Biome *> playerSpawnBiomes = biomeSource->getPlayerSpawnBiomes();
-	Random random(getSeed());
+    BiomeSource *biomeSource = dimension->biomeSource;
+    vector<Biome *> playerSpawnBiomes = biomeSource->getPlayerSpawnBiomes();
+    Random random(getSeed());
 
-	TilePos *findBiome = biomeSource->findBiome(0, 0, 16 * 16, playerSpawnBiomes, &random);
+    TilePos *spawnPos = biomeSource->findBiome(0, 0, 256, playerSpawnBiomes, &random);
 
-	int xSpawn = 0; // (Level.MAX_LEVEL_SIZE - 100) * 0;
-	int ySpawn = dimension->getSpawnYPosition();
-	int zSpawn = 0; // (Level.MAX_LEVEL_SIZE - 100) * 0;
-	int minXZ = - (dimension->getXZSize() * 16 ) / 2;
-	int maxXZ = (dimension->getXZSize() * 16 ) / 2 - 1;
+    int xSpawn = 0;
+    int ySpawn = dimension->getSpawnYPosition();
+    int zSpawn = 0;
+    int minXZ = -(dimension->getXZSize() * 16) / 2;
+    int maxXZ = (dimension->getXZSize() * 16) / 2 - 1;
 
-	if (findBiome != nullptr)
-	{
-		xSpawn = findBiome->x;
-		zSpawn = findBiome->z;
-		delete findBiome;
-	}
-	else
-	{
-		app.DebugPrintf("Level::setInitialSpawn - Unable to find spawn biome\n");
-	}
+    if (spawnPos != nullptr)
+    {
+        xSpawn = spawnPos->x;
+        zSpawn = spawnPos->z;
+        delete spawnPos;
+    }
+    else
+    {
+        app.DebugPrintf("Level::setInitialSpawn - Unable to find spawn biome\n");
+    }
 
-	int tries = 0;
+    int tries = 0;
+    while (!dimension->isValidSpawn(xSpawn, zSpawn))
+    {
+        xSpawn += random.nextInt(64) - random.nextInt(64);
+        if (xSpawn > maxXZ) xSpawn = 0;
+        if (xSpawn < minXZ) xSpawn = 0;
+        zSpawn += random.nextInt(64) - random.nextInt(64);
+        if (zSpawn > maxXZ) zSpawn = 0;
+        if (zSpawn < minXZ) zSpawn = 0;
+        if (++tries == 1000) break;
+    }
 
-	while (!dimension->isValidSpawn(xSpawn, zSpawn))
-	{
-		// 4J-PB changed to stay within our level limits
-		xSpawn += random.nextInt(64) - random.nextInt(64);
-		if(xSpawn>maxXZ) xSpawn=0;
-		if(xSpawn<minXZ) xSpawn=0;
-		zSpawn += random.nextInt(64) - random.nextInt(64);
-		if(zSpawn>maxXZ) zSpawn=0;
-		if(zSpawn<minXZ) zSpawn=0;
+    levelData->setSpawn(xSpawn, ySpawn, zSpawn);
+    if (levelSettings->hasStartingBonusItems())
+        generateBonusItemsNearSpawn();
 
-		if (++tries == 1000) break;
-	}
-
-	levelData->setSpawn(xSpawn, ySpawn, zSpawn);
-	if (levelSettings->hasStartingBonusItems())
-	{
-		generateBonusItemsNearSpawn();
-	}
-	isFindingSpawn = false;
+    isFindingSpawn = false;
 }
 
 // 4J - brought forward from 1.3.2

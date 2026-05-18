@@ -120,7 +120,7 @@ intArray RegionHillsLayer::getArea(int xo, int yo, int w, int h)
 				}
 				else if (k == Biome::ocean->id)
 				{
-					// java: ocean → deepOcean
+					
 					i1 = Biome::deepOcean->id;
 				}
 				else if (k == Biome::extremeHills->id)
@@ -129,14 +129,19 @@ intArray RegionHillsLayer::getArea(int xo, int yo, int w, int h)
 				}
 				else if (k == Biome::savanna->id)
 				{
-					// Java: savanna → savannaPlateau
+					
 					
 					i1 = Biome::savannaPlateau->id;
 				}
-				else if (k == Biome::deepOcean->id && nextRandom(3) == 0)
+				else if (k == Biome::deepOcean->id)
 				{
-					
-					i1 = (nextRandom(2) == 0) ? Biome::plains->id : Biome::forest->id;
+					 if (nextRandom(3) == 0)
+						{
+							if (nextRandom(2) == 0)
+							i1 = Biome::plains->id;
+							else
+							i1 = Biome::forest->id;
+						}
 				}
 
 				

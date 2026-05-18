@@ -18,7 +18,6 @@ libdivide::divider<long long> fast_d6(6);
 libdivide::divider<long long> fast_d7(7);
 libdivide::divider<long long> fast_d10(10);
 #endif
-
 LayerArray Layer::getDefaultLayers(int64_t seed, LevelType* levelType, void* superflatConfig)
 {
     int32_t seed32 = (int32_t)seed;
@@ -65,9 +64,37 @@ LayerArray Layer::getDefaultLayers(int64_t seed, LevelType* levelType, void* sup
     riverLayerFinal = make_shared<SmoothLayer>(seed32, riverLayerFinal, 0x3E8);
 
     shared_ptr<Layer> biomeLayer = make_shared<BiomeInitLayer>(seed32, baseLayer, 0xC8, levelType, superflatConfig);
-    
+
+    {
+    auto testBiome = make_shared<BiomeInitLayer>(seed32, baseLayer, 0xC8, levelType, superflatConfig);
+    testBiome->init((uint32_t)seed);
+    IntCache::releaseAll();
+    intArray testArea = testBiome->getArea(0, 0, 20, 20);
+    app.DebugPrintf("BiomeInitLayer only seed=%d:\n", seed32);
+    for (int z = 0; z < 20; z++) {
+        for (int x = 0; x < 20; x++)
+            app.DebugPrintf("%3d ", testArea[x + z*20]);
+        app.DebugPrintf("\n");
+    }
+    IntCache::releaseAll();
+}
+
     biomeLayer = make_shared<BiomeEdgeLayer>(seed32, biomeLayer, 0x3E8);
     biomeLayer = make_shared<RegionHillsLayer>(seed32, biomeLayer, hillsNoise, 0x3E8);
+    {
+    auto testLayer = biomeLayer;
+    testLayer->init((uint32_t)seed);
+    IntCache::releaseAll();
+    intArray testArea = testLayer->getArea(0, 0, 20, 20);
+    app.DebugPrintf("After RegionHillsLayer seed=%d:\n", seed32);
+    for (int z = 0; z < 20; z++) {
+        for (int x = 0; x < 20; x++)
+            app.DebugPrintf("%3d ", testArea[x + z*20]);
+        app.DebugPrintf("\n");
+    }
+    IntCache::releaseAll();
+}
+
     biomeLayer = make_shared<RareBiomeSpotLayer>(seed32, biomeLayer, 0x3E9);
 
     for (int i = 0; i < zoomLevel; ++i)
@@ -86,19 +113,44 @@ LayerArray Layer::getDefaultLayers(int64_t seed, LevelType* levelType, void* sup
     }
 
     biomeLayer = make_shared<SmoothLayer>(seed32, biomeLayer, 0x3E8);
+    {
+    auto testLayer = biomeLayer;
+    testLayer->init((uint32_t)seed);
+    IntCache::releaseAll();
+    intArray testArea = testLayer->getArea(60, 240, 20, 20);
+    app.DebugPrintf("After zoom loop seed=%d:\n", seed32);
+    for (int z = 0; z < 20; z++) {
+        for (int x = 0; x < 20; x++)
+            app.DebugPrintf("%3d ", testArea[x + z*20]);
+        app.DebugPrintf("\n");
+    }
+    IntCache::releaseAll();
+}
     shared_ptr<Layer> mixed = make_shared<RiverMixerLayer>(seed32, biomeLayer, riverLayerFinal, 0x64);
     shared_ptr<Layer> voronoi = make_shared<VoronoiZoom>(seed32, mixed, 0xA);
 
     mixed->init((uint32_t)seed);
     voronoi->init((uint32_t)seed);
 
+IntCache::releaseAll();
+mixed->init((uint32_t)seed);
+intArray testArea = mixed->getArea(0, 200, 60, 60);
+app.DebugPrintf("Biomes 0-60, 200-260 seed=%d:\n", seed32);
+for (int z = 0; z < 60; z++) {
+    for (int x = 0; x < 60; x++)
+        app.DebugPrintf("%3d ", testArea[x + z*60]);
+    app.DebugPrintf("\n");
+}
+IntCache::releaseAll();
+
     LayerArray result(3, false);
     result[0] = mixed;
     result[1] = voronoi;
     result[2] = mixed;
+
+
     return result;
 }
-
 Layer::Layer(int64_t s)
 {
     int64_t sm = (int64_t)(int32_t)s;
@@ -132,41 +184,40 @@ void Layer::initRandom(int64_t x, int64_t y)
 
 int Layer::nextRandom(int max)
 {
-    int32_t hi = (int32_t)(rval >> 32);
-    int result = (hi >> 24) % max;
+    int64_t rval_full = this->rval;  
+    uint32_t rval_lo = (uint32_t)rval_full;
+    uint32_t rval_hi = (uint32_t)(rval_full >> 32);
+    uint32_t seed_lo = (uint32_t)this->seed;
+
+    int result = (int)((int64_t)(rval_full >> 24) % (int64_t)max);
     if (result < 0) result += max;
 
-    int64_t v  = rval;
-    int64_t lo = (int64_t)(int32_t)(
-                     (int32_t)v * (1284865837 * (int32_t)v - 144211633)
-                     + (int32_t)seed);
-    int64_t hi64 = v * (0x5851F42D4C957F2DLL * v + 0x14057B7EF767814FLL) + seed;
-    rval = (hi64 & 0xFFFFFFFF00000000LL) | (uint32_t)lo;
+    uint32_t new_lo = rval_lo * (1284865837u * rval_lo - 144211633u) + seed_lo;
 
+   
+    uint64_t paired = ((uint64_t)rval_lo << 32) | (uint64_t)rval_lo;
+    uint64_t big = (uint64_t)(int64_t)rval_full * (0x5851F42D4C957F2DULL * paired + 0x14057B7EF767814FULL);
+    uint32_t carry = (uint32_t)(((uint64_t)(rval_lo * (1284865837u * rval_lo - 144211633u)) + seed_lo) >> 32);
+    uint32_t new_hi = seed_lo + carry + (uint32_t)(big >> 32);  
+
+    this->rval = ((int64_t)new_hi << 32) | (int64_t)new_lo;
     return result;
 }
 
-void Layer::init(int64_t seed)
+void Layer::init(int64_t worldSeed)
 {
     if (parent != nullptr)
-        parent->init(seed);
-    
-    uint32_t lo = (uint32_t)seed;
-    uint32_t m  = (uint32_t)seedMixup; 
-    
-    uint32_t v12 = lo * (1284865837u * lo - 144211633u);
-    uint32_t sum = v12 + m;
-    uint32_t step1 = sum * (1284865837u * sum - 144211633u);
-    uint32_t sum2  = step1 + m;
-    
-    int64_t step2 = (int64_t)(int32_t)sum2 
-                  * (0x5851F42D4C957F2DLL * (int64_t)(int32_t)sum2 
-                     + 0x14057B7EF767814FLL) 
-                  + (int64_t)(int32_t)m;
-     static bool first = true;
-    
+        parent->init(worldSeed);
 
-    this->seed = step2;
+    uint32_t ws = (uint32_t)worldSeed;
+    int64_t m   = this->seedMixup;
+
+    uint32_t v12 = ws * (1284865837u * ws - 144211633u);
+    int64_t sum1 = (int64_t)(int32_t)v12 + m;           
+    uint32_t v14_lo = (uint32_t)sum1 * (1284865837u * (uint32_t)sum1 - 144211633u);
+    int64_t sum2 = (int64_t)(int32_t)v14_lo + m;
+
+    this->seed = sum2 * (0x5851F42D4C957F2DLL * sum2 + 0x14057B7EF767814FLL) + m;
 }
 
 bool Layer::isOcean(int biomeId)
