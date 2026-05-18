@@ -165,14 +165,11 @@ Layer::Layer(int64_t s)
 void Layer::initRandom(int64_t x, int64_t y)
 {
 
-    static bool first = true;
-    
-
     int64_t xi = (int64_t)(int32_t)x;
     int64_t yi = (int64_t)(int32_t)y;
 
     int64_t v4 = (0x5851F42D4C957F2DLL * seed + 0x14057B7EF767814FLL) * seed + xi;
-    uint32_t v5 = 1284865837u * (uint32_t)(v4 * (1284865837LL * (int32_t)v4 - 144211633LL) + yi) - 144211633u;
+    uint32_t v5 = 1284865837u * (uint32_t)(v4 * (1284865837LL * v4 - 144211633LL) + yi) - 144211633u;
     int64_t paired = (int64_t)(((uint64_t)v5 << 32) | (uint64_t)v5);
     int64_t v6 = paired * (v4 * (0x5851F42D4C957F2DLL * v4 + 0x14057B7EF767814FLL) + yi) + xi;
     uint32_t lo = 1284865837u * (uint32_t)v6 - 144211633u;
@@ -186,19 +183,19 @@ int Layer::nextRandom(int max)
 {
     int64_t rval_full = this->rval;  
     uint32_t rval_lo = (uint32_t)rval_full;
-    uint32_t rval_hi = (uint32_t)(rval_full >> 32);
     uint32_t seed_lo = (uint32_t)this->seed;
+    uint32_t seed_hi = (uint32_t)(this->seed >> 32);
 
     int result = (int)((int64_t)(rval_full >> 24) % (int64_t)max);
     if (result < 0) result += max;
 
-    uint32_t new_lo = rval_lo * (1284865837u * rval_lo - 144211633u) + seed_lo;
+    uint32_t v9 = rval_lo * (1284865837u * rval_lo - 144211633u);
+    uint32_t new_lo = v9 + seed_lo;
 
-   
     uint64_t paired = ((uint64_t)rval_lo << 32) | (uint64_t)rval_lo;
-    uint64_t big = (uint64_t)(int64_t)rval_full * (0x5851F42D4C957F2DULL * paired + 0x14057B7EF767814FULL);
-    uint32_t carry = (uint32_t)(((uint64_t)(rval_lo * (1284865837u * rval_lo - 144211633u)) + seed_lo) >> 32);
-    uint32_t new_hi = seed_lo + carry + (uint32_t)(big >> 32);  
+    uint64_t big = (uint64_t)rval_full * (0x5851F42D4C957F2DULL * paired + 0x14057B7EF767814FULL);
+    uint32_t carry = ((uint64_t)v9 + (uint64_t)seed_lo) > 0xFFFFFFFFULL ? 1 : 0;
+    uint32_t new_hi = seed_hi + carry + (uint32_t)(big >> 32);
 
     this->rval = ((int64_t)new_hi << 32) | (int64_t)new_lo;
     return result;
@@ -209,15 +206,18 @@ void Layer::init(int64_t worldSeed)
     if (parent != nullptr)
         parent->init(worldSeed);
 
-    uint32_t ws = (uint32_t)worldSeed;
-    int64_t m   = this->seedMixup;
+    int64_t m = this->seedMixup;
+    int64_t val = (int64_t)(uint32_t)worldSeed;
 
-    uint32_t v12 = ws * (1284865837u * ws - 144211633u);
-    int64_t sum1 = (int64_t)(int32_t)v12 + m;           
-    uint32_t v14_lo = (uint32_t)sum1 * (1284865837u * (uint32_t)sum1 - 144211633u);
-    int64_t sum2 = (int64_t)(int32_t)v14_lo + m;
+    
+    uint32_t lo = (uint32_t)val;
+    uint64_t paired = ((uint64_t)lo << 32) | (uint64_t)lo;
+    val = val * (int64_t)(0x5851F42D4C957F2DULL * paired + 0x14057B7EF767814FULL) + m;
 
-    this->seed = sum2 * (0x5851F42D4C957F2DLL * sum2 + 0x14057B7EF767814FLL) + m;
+    val = val * (0x5851F42D4C957F2DLL * val + 0x14057B7EF767814FLL) + m;
+    val = val * (0x5851F42D4C957F2DLL * val + 0x14057B7EF767814FLL) + m;
+
+    this->seed = val;
 }
 
 bool Layer::isOcean(int biomeId)
