@@ -3,7 +3,7 @@
 #include "net.minecraft.world.level.biome.h"
 #include "IntCache.h"
 
-ShoreLayer::ShoreLayer(int64_t seed, shared_ptr<Layer> parent, int64_t seedMixup) : Layer(seedMixup)
+ShoreLayer::ShoreLayer(int32_t seed, int64_t seedMixup, shared_ptr<Layer> parent) : Layer(seed,seedMixup)
 {
 	this->parent = parent;
 }

@@ -15,7 +15,7 @@ bool dword_10073FD8[100] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 
-ImposeContinentsLayer::ImposeContinentsLayer(int64_t seed, shared_ptr<Layer> parent) : Layer(seed)
+ImposeContinentsLayer::ImposeContinentsLayer(int32_t seed,  int64_t seedMixup, shared_ptr<Layer> parent) : Layer(seed,seedMixup)
 {
     this->parent = parent;
 }

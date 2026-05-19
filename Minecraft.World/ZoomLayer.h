@@ -5,8 +5,7 @@
 class ZoomLayer : public Layer
 {
 public:
-	ZoomLayer(int64_t seed, shared_ptr<Layer> parent,int64_t seedMixup);
-
+	ZoomLayer::ZoomLayer(int32_t seed, int64_t seedMixup, shared_ptr<Layer> parent);
 	virtual intArray getArea(int xo, int yo, int w, int h);
 
 protected:
@@ -14,5 +13,5 @@ protected:
 	int random(int a, int b, int c, int d);
 
 public:
-	static shared_ptr<Layer> zoom(int64_t seed, shared_ptr<Layer> sup, int64_t seedMixup, int count);
+	static shared_ptr<Layer> zoom(int32_t seed, int64_t seedMixup, shared_ptr<Layer> sup, int count);
 };

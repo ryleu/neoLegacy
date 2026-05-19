@@ -3,8 +3,8 @@
 #include "net.minecraft.world.level.biome.h"
 #include "IntCache.h"
 
-AddEdgeLayer::AddEdgeLayer(int64_t seed, std::shared_ptr<Layer> parent, int64_t seedMixup, int mode)
-    : Layer(seedMixup)
+AddEdgeLayer::AddEdgeLayer(int32_t seed, int64_t seedMixup,std::shared_ptr<Layer> parent, int mode)
+    : Layer(seed,seedMixup)
 {
     this->parent = parent;
     this->mode = mode;

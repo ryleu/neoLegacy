@@ -3,7 +3,7 @@
 #include "IntCache.h"
 #include "SwampRiversLayer.h"
 
-SwampRiversLayer::SwampRiversLayer(int64_t seed, shared_ptr<Layer> parent) : Layer(seed)
+SwampRiversLayer::SwampRiversLayer(int32_t seed, shared_ptr<Layer> parent) : Layer(seed,seedMixup)
 {
 	this->parent = parent;
 }

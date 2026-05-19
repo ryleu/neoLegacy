@@ -3,7 +3,7 @@
 #include "net.minecraft.world.level.biome.h"
 #include "IntCache.h"
 
-BiomeEdgeLayer::BiomeEdgeLayer(int64_t seed, shared_ptr<Layer> parent, int64_t seedMixup) : Layer(seedMixup)
+BiomeEdgeLayer::BiomeEdgeLayer(int32_t seed, int64_t seedMixup, shared_ptr<Layer> parent) : Layer(seed,seedMixup)
 {
     this->parent = parent;
 }
@@ -91,4 +91,40 @@ bool BiomeEdgeLayer::isValidTemperatureEdge(int a1biome, int a2biome)
     if (a1biome == a2biome) return true;
     
     return true; 
+}
+bool BiomeEdgeLayer::checkEdgeStrict(intArray& srcArray, intArray& destArray, int x, int z, int width, int centerBiome, unsigned int targetBiome, int replacementBiome)
+{
+
+    if ((unsigned int)centerBiome != targetBiome)
+    {
+        return false;
+    }
+
+
+    int northIndex = x + (z * (width + 2) + 1);
+    int southIndex = x + ((z + 2) * (width + 2) + 1);
+    int westIndex  = (x + (z + 1) * (width + 2));
+    int eastIndex  = (x + 2 + (z + 1) * (width + 2));
+
+    int biomeNorth = srcArray[northIndex];
+    int biomeSouth = srcArray[southIndex];
+    int biomeWest  = srcArray[westIndex];
+    int biomeEast  = srcArray[eastIndex];
+
+
+    if (Layer::isSame(biomeNorth, targetBiome) &&
+        Layer::isSame(biomeEast, targetBiome) &&
+        Layer::isSame(biomeWest, targetBiome) &&
+        Layer::isSame(biomeSouth, targetBiome))
+    {
+
+        destArray[x + z * width] = centerBiome;
+        return true;
+    }
+    else
+    {
+
+        destArray[x + z * width] = replacementBiome;
+        return true;
+    }
 }

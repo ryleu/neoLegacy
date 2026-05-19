@@ -10,7 +10,7 @@ struct CustomizableSourceSettings {
     int biome;
 };
 
-BiomeInitLayer::BiomeInitLayer(int64_t seed, shared_ptr<Layer> parent, int64_t seedMixup, LevelType *levelType, void* superflatConfig) : Layer(seedMixup)
+BiomeInitLayer::BiomeInitLayer(int32_t seed, int64_t seedMixup, shared_ptr<Layer> parent, LevelType *levelType, void* superflatConfig) : Layer(seed,seedMixup)
 {
     this->parent = parent;
     this->customSettings = nullptr;

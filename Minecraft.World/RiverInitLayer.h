@@ -5,7 +5,7 @@
 class RiverInitLayer : public Layer
 {
 public:
-	RiverInitLayer(int64_t seed, std::shared_ptr<Layer> parent, int64_t seedMixup);
+	RiverInitLayer(int32_t seed, int64_t seedMixup, shared_ptr<Layer> parent);
 
 	intArray getArea(int xo, int yo, int w, int h);
 };

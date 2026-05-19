@@ -2,9 +2,10 @@
 #include "net.minecraft.world.level.newbiome.layer.h"
 #include "System.h"
 
-SmoothZoomLayer::SmoothZoomLayer(int64_t seedMixup, shared_ptr<Layer>parent) : Layer(seedMixup)
+SmoothZoomLayer::SmoothZoomLayer(int32_t seed, int64_t seedMixup, shared_ptr<Layer> parent) 
+    : Layer(seed, seedMixup)
 {
-	this->parent = parent;
+    this->parent = parent;
 }
 
 intArray SmoothZoomLayer::getArea(int xo, int yo, int w, int h)
@@ -50,12 +51,13 @@ intArray SmoothZoomLayer::getArea(int xo, int yo, int w, int h)
 	return result;
 }
 
-shared_ptr<Layer>SmoothZoomLayer::zoom(int64_t seed, shared_ptr<Layer>sup, int count)
+shared_ptr<Layer> SmoothZoomLayer::zoom(int32_t seed, int64_t seedMixup, shared_ptr<Layer> sup, int count)
 {
-	shared_ptr<Layer>result = sup;
-	for (int i = 0; i < count; i++)
-	{
-		result = std::make_shared<SmoothZoomLayer>(seed + i, result);
-	}
-	return result;
+    shared_ptr<Layer> result = sup;
+    for (int i = 0; i < count; i++)
+    {
+        
+        result = std::make_shared<SmoothZoomLayer>(seed, seedMixup + i, result);
+    }
+    return result;
 }

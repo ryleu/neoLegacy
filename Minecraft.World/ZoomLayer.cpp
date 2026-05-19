@@ -2,9 +2,10 @@
 #include "net.minecraft.world.level.newbiome.layer.h"
 #include "System.h"
 
-ZoomLayer::ZoomLayer(int64_t seed, shared_ptr<Layer> parent, int64_t seedMixup) : Layer(seedMixup)
+ZoomLayer::ZoomLayer(int32_t seed, int64_t seedMixup, shared_ptr<Layer> parent) 
+    : Layer(seed, seedMixup) 
 {
-	this->parent = parent;
+    this->parent = parent; 
 }
 
 intArray ZoomLayer::getArea(int xo, int yo, int w, int h)
@@ -70,12 +71,13 @@ int ZoomLayer::random(int a, int b, int c, int d)
     return d;
 }
 
-shared_ptr<Layer>ZoomLayer::zoom(int64_t seed, shared_ptr<Layer> sup, int64_t seedMixup, int count)
+shared_ptr<Layer> ZoomLayer::zoom(int32_t seed, int64_t seedMixup, shared_ptr<Layer> sup, int count)
 {
-	shared_ptr<Layer>result = sup;
-	for (int i = 0; i < count; i++)
-	{
-		result = std::make_shared<ZoomLayer>(seed, result, seedMixup + i);
-	}
-	return result;
+    shared_ptr<Layer> result = sup;
+    for (int i = 0; i < count; i++)
+    {
+        
+        result = std::make_shared<ZoomLayer>(seed, seedMixup + i, result);
+    }
+    return result;
 }

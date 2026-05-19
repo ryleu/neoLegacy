@@ -14,7 +14,7 @@ public:
 
 public:
     static LayerArray getDefaultLayers(int64_t seed, LevelType *levelType, void* superflatConfig = nullptr);
-    Layer(int64_t seedMixup);
+    Layer(int32_t seed, int64_t seedMixup);
     virtual void init(int64_t seed);
     bool isOcean(int biomeId);
     bool isSame(int biomeIdA, int biomeIdB);

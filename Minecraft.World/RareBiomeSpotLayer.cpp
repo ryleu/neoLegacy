@@ -3,7 +3,7 @@
 #include "IntCache.h"
 #include "net.minecraft.world.level.biome.h"
 
-RareBiomeSpotLayer::RareBiomeSpotLayer(int64_t seed, std::shared_ptr<Layer> parent, int64_t seedMixup) : Layer(seedMixup)
+RareBiomeSpotLayer::RareBiomeSpotLayer(int32_t seed, int64_t seedMixup, shared_ptr<Layer> parent) : Layer(seed,seedMixup)
 {
 	this->parent = parent;
 }

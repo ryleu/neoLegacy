@@ -5,6 +5,6 @@
 class RareBiomeSpotLayer : public Layer
 {
 public:
-	RareBiomeSpotLayer(int64_t seed, std::shared_ptr<Layer> parent, int64_t seedMixup);
+	RareBiomeSpotLayer(int32_t seed, int64_t seedMixup, shared_ptr<Layer> parent);
 	virtual intArray getArea(int xo, int yo, int w, int h) override;
 };

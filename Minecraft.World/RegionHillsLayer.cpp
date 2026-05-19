@@ -5,16 +5,11 @@
 
 
 
-RegionHillsLayer::RegionHillsLayer(int64_t seed, shared_ptr<Layer> parent) : Layer(seed)
+RegionHillsLayer::RegionHillsLayer(int32_t seed, int64_t seedMixup, shared_ptr<Layer> parent, shared_ptr<Layer> riverNoise) 
+    : Layer(seed, seedMixup) 
 {
-	this->parent = parent;
-	this->riverNoise = nullptr;
-}
-
-RegionHillsLayer::RegionHillsLayer(int64_t seed, shared_ptr<Layer> parent, shared_ptr<Layer> riverNoise, int64_t seedMixup) : Layer(seedMixup)
-{
-	this->parent     = parent;
-	this->riverNoise = riverNoise;
+    this->parent = parent;
+    this->riverNoise = riverNoise;
 }
 
 void RegionHillsLayer::init(int64_t seed)
@@ -84,7 +79,7 @@ intArray RegionHillsLayer::getArea(int xo, int yo, int w, int h)
 				}
 				else if (k == Biome::roofedForest->id)
 				{
-					// Java: roofedForest -> plains 
+					
 					i1 = Biome::plains->id;
 				}
 				else if (k == Biome::taiga->id)

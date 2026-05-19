@@ -2,7 +2,7 @@
 #include "net.minecraft.world.level.biome.h"
 #include "net.minecraft.world.level.newbiome.layer.h"
 
-RiverLayer::RiverLayer(int64_t seed, shared_ptr<Layer> parent, int64_t seedMixup) : Layer(seedMixup)
+RiverLayer::RiverLayer(int32_t seed, int64_t seedMixup, shared_ptr<Layer> parent) : Layer(seed,seedMixup)
 {
 	this->parent = parent;
 }

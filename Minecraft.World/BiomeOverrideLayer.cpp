@@ -5,7 +5,7 @@
 #include "BiomeOverrideLayer.h"
 
 
-BiomeOverrideLayer::BiomeOverrideLayer(int seedMixup) : Layer(seedMixup)
+BiomeOverrideLayer::BiomeOverrideLayer(int32_t seed, int64_t seedMixup) :Layer(seed, seedMixup)
 {
 	m_biomeOverride = byteArray( width * height );
 

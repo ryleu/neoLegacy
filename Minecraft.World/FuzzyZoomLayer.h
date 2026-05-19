@@ -1,11 +1,11 @@
 #pragma once
 
-#include "Layer.h"
+#include "ZoomLayer.h"
 
-class FuzzyZoomLayer : public Layer
+class FuzzyZoomLayer : public ZoomLayer
 {
 public:
-	FuzzyZoomLayer(int64_t seed, shared_ptr<Layer> parent, int64_t seedMixup);
+	FuzzyZoomLayer(int32_t seed, int64_t seedMixup, shared_ptr<Layer> parent);
     intArray getArea(int xo, int yo, int w, int h);
 
 protected:
@@ -13,5 +13,5 @@ protected:
     int random(int a, int b, int c, int d);
 
 public:
-	static shared_ptr<Layer>zoom(int64_t seed, shared_ptr<Layer>sup, int count);
+	static std::shared_ptr<Layer> zoom(int32_t seed, int64_t seedMixup, std::shared_ptr<Layer> sup, int count);
 };

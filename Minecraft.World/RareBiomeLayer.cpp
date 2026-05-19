@@ -3,7 +3,7 @@
 #include "IntCache.h"
 #include "RareBiomeLayer.h"
 
-RareBiomeLayer::RareBiomeLayer(int64_t seed, shared_ptr<Layer> parent) : Layer(seed)
+RareBiomeLayer::RareBiomeLayer(int32_t seed, shared_ptr<Layer> parent) : Layer(seed,seedMixup)
 {
 	this->parent = parent;
 }

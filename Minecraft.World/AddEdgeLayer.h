@@ -14,7 +14,7 @@ private:
 
 
 public:
-    AddEdgeLayer(int64_t seed, std::shared_ptr<Layer> parent, int64_t seedMixup, int mode);
+    AddEdgeLayer(int32_t seed,  int64_t seedMixup, std::shared_ptr<Layer> parent,int mode);
     virtual ~AddEdgeLayer() {}
     intArray getArea(int xo, int yo, int w, int h) override;
 };

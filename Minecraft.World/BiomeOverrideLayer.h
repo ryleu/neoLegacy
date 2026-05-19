@@ -13,6 +13,6 @@ private:
 	byteArray m_biomeOverride;
 
 public:
-	BiomeOverrideLayer(int seedMixup);
-	intArray getArea(int xo, int yo, int w, int h);
+	BiomeOverrideLayer(int32_t seed, int64_t seedMixup);
+    intArray getArea(int xo, int yo, int w, int h);
 };

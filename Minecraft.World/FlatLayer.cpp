@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "net.minecraft.world.level.newbiome.layer.h"
 
-FlatLayer::FlatLayer(int val) : Layer(0)
+FlatLayer::FlatLayer(int val) : Layer(0,0)
 {
 	this->val = val;
 }

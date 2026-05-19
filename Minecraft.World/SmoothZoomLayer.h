@@ -5,8 +5,9 @@
 class SmoothZoomLayer : public Layer
 {
 public:
-	SmoothZoomLayer(int64_t seedMixup, shared_ptr<Layer>parent);
+	public:
+    SmoothZoomLayer(int32_t seed, int64_t seedMixup, std::shared_ptr<Layer> parent);
 
 	virtual intArray getArea(int xo, int yo, int w, int h);
-	static shared_ptr<Layer>zoom(int64_t seed, shared_ptr<Layer>sup, int count);
+	static shared_ptr<Layer>zoom(int32_t seed, int64_t seedMixup, shared_ptr<Layer> sup, int count);
 };
