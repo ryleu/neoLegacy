@@ -614,10 +614,18 @@ void UIController::loadSkins()
 
 	//Load skins specifcally edited for use on achievements, if we
 	//used these as skin.swf and skinInGame.swf it breaks some other things
+	//hello again i added more library's for minigames swf 
+	//i also send you all a big hello :v
 	m_iggyLibraries[eLibrary_LCDefault] = loadSkin(L"skinLC.swf", L"skinLC.swf");
 	m_iggyLibraries[eLibrary_LCInGame] = loadSkin(L"skinInGameLC.swf", L"skinInGameLC.swf");
 	m_iggyLibraries[eLibrary_LCGraphics] = loadSkin(L"skinGraphicsLC.swf", L"skinGraphicsLC.swf");
 	m_iggyLibraries[eLibrary_LCLabels] = loadSkin(L"skinLabelsLC.swf", L"skinLabelsLC.swf");
+	m_iggyLibraries[eLibrary_LCGraphicsLabels] = loadSkin(L"skinGraphicsLabelsLC.swf", L"skinGraphicsLabelsLC.swf");
+	m_iggyLibraries[eLibrary_LCGraphicsHud] = loadSkin(L"skinGraphicsHudLC.swf", L"skinGraphicsHudLC.swf");
+	m_iggyLibraries[eLibrary_LCGraphicsInGame] = loadSkin(L"skinGraphicsInGameLC.swf", L"skinGraphicsInGameLC.swf");
+	m_iggyLibraries[eLibrary_LCGraphicsTooltips] = loadSkin(L"skinGraphicsTooltipsLC.swf", L"skinGraphicsTooltipsLC.swf");
+	m_iggyLibraries[eLibrary_LCHud] = loadSkin(L"skinHudLC.swf", L"skinHudLC.swf");
+	m_iggyLibraries[eLibrary_LCTooltips] = loadSkin(L"skinTooltipsLC.swf", L"skinTooltipsLC.swf");
 
 	// Some 1080p menu ports (such as LoadCreateJoin) may import DR-specific HD
 	// libraries by distinct names. Load them opportunistically when present so

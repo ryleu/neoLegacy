@@ -6,12 +6,68 @@
 
 UIScene_FullscreenProgress::UIScene_FullscreenProgress(int iPad, void *initData, UILayer *parentLayer) : UIScene(iPad, parentLayer)
 {
+	LoadingInputParams *params = static_cast<LoadingInputParams *>(initData);
+
+	m_CompletionData = params->completionData;
+	m_iPad = params->completionData->iPad;
+	m_cancelFunc = params->cancelFunc;
+	m_cancelFuncParam = params->m_cancelFuncParam;
+	m_completeFunc = params->completeFunc;
+	m_completeFuncParam = params->m_completeFuncParam;
+
+	m_cancelText = params->cancelText;
+	m_bWasCancelled = false;
+	m_bWaitForThreadToDelete = params->waitForThreadToDelete;
+
 	// Setup all the Iggy references we need for this scene
 	initialiseMovie();
 
+	if (m_CompletionData && m_CompletionData->bIsMinigame)
+	{
+		byteArray iconBytes = app.getArchiveFile(L"Graphics\\BattleModeIcon.png");
+		if (iconBytes.data && iconBytes.length > 0)
+		{
+			registerSubstitutionTexture(L"mini_game_battle", iconBytes.data, iconBytes.length, true);
+		}
+
+		IggyName funcSetType = registerFastName( L"SetLoadingScreenType" );
+		IggyDataValue result;
+		IggyDataValue value[1];
+		value[0].type = IGGY_DATATYPE_number;
+		value[0].number = 1.0;
+		IggyResult out = IggyPlayerCallMethodRS( getMovie(), &result, IggyPlayerRootPath( getMovie() ), funcSetType, 1, value );
+
+		// set the texture for the minigame logo inside the SWF dynamically
+		IggyValuePath gmIconPath;
+		if (IggyValuePathMakeNameRef(&gmIconPath, IggyPlayerRootPath(getMovie()), "GMIcon"))
+		{
+			// this is to make the logo smaller
+			// by default it looks huge
+			// 5.0 is the original scale 
+			IggyName nameScaleX = registerFastName(L"scaleX");
+			IggyName nameScaleY = registerFastName(L"scaleY");
+			IggyValueSetF64RS(&gmIconPath, nameScaleX, nullptr, 3.45);
+			IggyValueSetF64RS(&gmIconPath, nameScaleY, nullptr, 3.5);
+
+			IggyValuePath mgLogoPath;
+			if (IggyValuePathMakeNameRef(&mgLogoPath, &gmIconPath, "MG_Logo"))
+			{
+				IggyName funcSetTextureName = registerFastName(L"SetTextureName");
+				IggyDataValue resultLogo;
+				IggyDataValue valueLogo[1];
+				IggyStringUTF16 stringVal;
+				stringVal.string = (IggyUTF16*)L"mini_game_battle";
+				stringVal.length = wcslen(L"mini_game_battle");
+				valueLogo[0].type = IGGY_DATATYPE_string_UTF16;
+				valueLogo[0].string16 = stringVal;
+				IggyPlayerCallMethodRS(getMovie(), &resultLogo, &mgLogoPath, funcSetTextureName, 1, valueLogo);
+			}
+		}
+	}
+
 	parentLayer->addComponent(iPad,eUIComponent_Panorama);
 	parentLayer->addComponent(iPad,eUIComponent_Logo);
-	parentLayer->showComponent(iPad,eUIComponent_Logo,true);
+	parentLayer->showComponent(iPad,eUIComponent_Logo, true);
 	parentLayer->showComponent(iPad,eUIComponent_MenuBackground,false);
 
 	m_controlTimer.setVisible( false );
@@ -25,19 +81,6 @@ UIScene_FullscreenProgress::UIScene_FullscreenProgress(int iPad, void *initData,
 
 	m_buttonConfirm.init( app.GetString( IDS_CONFIRM_OK ), eControl_Confirm );
 	m_buttonConfirm.setVisible(false);
-
-	LoadingInputParams *params = static_cast<LoadingInputParams *>(initData);
-
-	m_CompletionData = params->completionData;
-	m_iPad=params->completionData->iPad;
-	m_cancelFunc = params->cancelFunc;
-	m_cancelFuncParam = params->m_cancelFuncParam;
-	m_completeFunc = params->completeFunc;
-	m_completeFuncParam = params->m_completeFuncParam;
-
-	m_cancelText = params->cancelText;
-	m_bWasCancelled=false;
-	m_bWaitForThreadToDelete = params->waitForThreadToDelete;
 
 	// Clear the progress text
 	Minecraft *pMinecraft=Minecraft::GetInstance();

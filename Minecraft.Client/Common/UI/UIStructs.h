@@ -218,6 +218,7 @@ typedef struct _UIFullscreenProgressCompletionData
 	BOOL bShowBackground;
 	BOOL bShowLogo;
 	BOOL bShowTips;
+	BOOL bIsMinigame;
 	ProgressionCompletionType type;
 	int iPad;
 	EUIScene scene;

@@ -1,11 +1,34 @@
 #include "stdafx.h"
 #include "UI.h"
 #include "UIScene_MinigamesCreateMenu.h"
+#include "UIScene_FullscreenProgress.h"
 #include "../../Minecraft.h"
+#include "../../MinecraftServer.h"
+#include "../../../Minecraft.World/File.h"
+#include "../../../Minecraft.World/InputOutputStream.h"
+#include "../../TexturePackRepository.h"
 // mini gaimes menus By aRockefeler o aRockefort
 // string localization by Fireblade
 namespace
 {
+	LoadSaveDataThreadParam* LoadLobbySaveData()
+	{
+		File lobbySave(L"Windows64Media\\Lobby\\Lobby.mcs");
+		if (!lobbySave.exists())
+			lobbySave = File(L"Windows64\\Lobby\\Lobby.mcs");
+
+		if (!lobbySave.exists())
+			return nullptr;
+
+		int64_t fileSize = lobbySave.length();
+		FileInputStream fis(lobbySave);
+		byteArray ba(static_cast<unsigned int>(fileSize));
+		fis.read(ba);
+		fis.close();
+
+		return new LoadSaveDataThreadParam(ba.data, ba.length, lobbySave.getName());
+	}
+
 	const wchar_t* GetBattleModeLabel(int mode)
 	{
 		switch (mode)
@@ -385,13 +408,61 @@ void UIScene_MinigamesCreateMenu::checkStateAndStartGame()
 
 void UIScene_MinigamesCreateMenu::LaunchGame()
 {
-	// this is for debugging 
-	// if the menu is already complete you can remove this
-	app.DebugPrintf("[MGDBG] MiniGamesCreateMenu Create pressed for type=%d mode=%d online=%d public=%d friends=%d invite=%d\n",
-		m_iMiniGameType,
-		m_iBattleModeSelection,
-		m_MoreOptionsParams.bOnlineGame ? 1 : 0,
-		m_bPublicGame ? 1 : 0,
-		m_MoreOptionsParams.bAllowFriendsOfFriends ? 1 : 0,
-		m_MoreOptionsParams.bInviteOnly ? 1 : 0);
+	SyncBattleCheckboxStates();
+	m_bIgnoreInput = true;
+
+	LoadSaveDataThreadParam* saveData = LoadLobbySaveData();
+	if (!saveData)
+	{
+		app.DebugPrintf("[MGDBG] Failed to load Lobby.mcs (Windows64Media/Lobby).\n");
+		m_bIgnoreInput = false;
+		return;
+	}
+
+	app.SetTutorialMode(false);
+	StorageManager.ResetSaveData();
+	StorageManager.SetSaveTitle(L"Lobby");
+	app.SetAutosaveTimerTime();
+
+	app.SetGameHostOption(eGameHostOption_FriendsOfFriends, m_MoreOptionsParams.bAllowFriendsOfFriends);
+	app.SetGameHostOption(eGameHostOption_Gamertags, app.GetGameSettings(m_iPad, eGameSetting_GamertagsVisible) ? 1 : 0);
+	app.SetGameHostOption(eGameHostOption_PvP, m_MoreOptionsParams.bPVP);
+	app.SetGameHostOption(eGameHostOption_TrustPlayers, m_MoreOptionsParams.bTrust);
+	app.SetGameHostOption(eGameHostOption_FireSpreads, m_MoreOptionsParams.bFireSpreads);
+	app.SetGameHostOption(eGameHostOption_TNT, m_MoreOptionsParams.bTNT);
+	app.SetGameHostOption(eGameHostOption_HostCanFly, m_MoreOptionsParams.bHostPrivileges);
+	app.SetGameHostOption(eGameHostOption_HostCanChangeHunger, m_MoreOptionsParams.bHostPrivileges);
+	app.SetGameHostOption(eGameHostOption_HostCanBeInvisible, m_MoreOptionsParams.bHostPrivileges);
+	app.SetGameHostOption(eGameHostOption_WasntSaveOwner, false);
+
+	bool isClientSide = ProfileManager.IsSignedInLive(ProfileManager.GetPrimaryPad())
+		&& m_MoreOptionsParams.bOnlineGame;
+	bool isPrivate = m_MoreOptionsParams.bInviteOnly ? true : false;
+
+	g_NetworkManager.HostGame(0, isClientSide, isPrivate, MINECRAFT_NET_MAX_PLAYERS, 0);
+
+#ifndef _XBOX
+	g_NetworkManager.FakeLocalPlayerJoined();
+#endif
+
+	NetworkGameInitData* param = new NetworkGameInitData();
+	param->seed = 0;
+	param->saveData = saveData;
+	param->settings = app.GetGameHostOption(eGameHostOption_All);
+	param->savePlatform = SAVE_FILE_PLATFORM_LOCAL;
+
+	LoadingInputParams* loadingParams = new LoadingInputParams();
+	loadingParams->func = &CGameNetworkManager::RunNetworkGameThreadProc;
+	loadingParams->lpParam = static_cast<LPVOID>(param);
+
+	UIFullscreenProgressCompletionData* completionData = new UIFullscreenProgressCompletionData();
+	completionData->bShowBackground = TRUE;
+	completionData->bShowLogo = TRUE;
+	completionData->bShowTips = TRUE;
+	completionData->type = e_ProgressCompletion_CloseAllPlayersUIScenes;
+	completionData->iPad = DEFAULT_XUI_MENU_USER;
+	completionData->bIsMinigame = TRUE;
+	loadingParams->completionData = completionData;
+
+	ui.NavigateToScene(m_iPad, eUIScene_FullscreenProgress, loadingParams);
 }

@@ -28,8 +28,8 @@ UIScene_MinigamesMenu::UIScene_MinigamesMenu(int iPad, void *initData, UILayer *
 // here the code ask for the swf
 std::wstring UIScene_MinigamesMenu::getMoviePath()
 {
-	app.DebugPrintf("[MGDBG] UIScene_MinigamesMenu getMoviePath -> MiniGamesMenu\n");// and this is for debugging too
-	return L"MiniGamesMenu";
+	app.DebugPrintf("[MGDBG] UIScene_MinigamesMenu getMoviePath -> LoadCreateJoinMenu\n");// and this is for debugging too
+	return L"LoadCreateJoinMenu";
 }
 
 void UIScene_MinigamesMenu::ApplyMiniGamesLabels()
