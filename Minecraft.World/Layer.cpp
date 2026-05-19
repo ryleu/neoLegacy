@@ -179,26 +179,17 @@ void Layer::initRandom(int64_t x, int64_t y)
   
 }
 
-int Layer::nextRandom(int max)
-{
-    int64_t rval_full = this->rval;  
-    uint32_t rval_lo = (uint32_t)rval_full;
-    uint32_t seed_lo = (uint32_t)this->seed;
-    uint32_t seed_hi = (uint32_t)(this->seed >> 32);
+int Layer::nextRandom(int max) {
+    
+    int r = (int)((this->rval >> 24) % max);
+    if (r < 0) {
+        r += max;
+    }
 
-    int result = (int)((int64_t)(rval_full >> 24) % (int64_t)max);
-    if (result < 0) result += max;
+    
+    this->rval = this->rval * (this->rval * 0x5851F42D4C957F2DLL + 0x14057B7EF767814FLL) + this->seed;
 
-    uint32_t v9 = rval_lo * (1284865837u * rval_lo - 144211633u);
-    uint32_t new_lo = v9 + seed_lo;
-
-    uint64_t paired = ((uint64_t)rval_lo << 32) | (uint64_t)rval_lo;
-    uint64_t big = (uint64_t)rval_full * (0x5851F42D4C957F2DULL * paired + 0x14057B7EF767814FULL);
-    uint32_t carry = ((uint64_t)v9 + (uint64_t)seed_lo) > 0xFFFFFFFFULL ? 1 : 0;
-    uint32_t new_hi = seed_hi + carry + (uint32_t)(big >> 32);
-
-    this->rval = ((int64_t)new_hi << 32) | (int64_t)new_lo;
-    return result;
+    return r;
 }
 
 void Layer::init(int64_t worldSeed)
@@ -218,6 +209,10 @@ void Layer::init(int64_t worldSeed)
     val = val * (0x5851F42D4C957F2DLL * val + 0x14057B7EF767814FLL) + m;
 
     this->seed = val;
+    static int count = 0;
+    if (count++ < 3)
+        app.DebugPrintf("init result: seedMixup=%lld, worldSeed=%lld, seed=%lld\n", 
+                        seedMixup, worldSeed, this->seed);
 }
 
 bool Layer::isOcean(int biomeId)
@@ -242,44 +237,51 @@ bool Layer::isSame(int biomeIdA, int biomeIdB) {
 
 
 int Layer::random(int i, int j, int k, int l) {
-    int random = nextRandom(4);
-
-    int ret = (random != 2 ? i : k);
-    if (random == 3)
-        ret = l;
-    if (random == 1)
-        ret = j;
-    return ret;
+    int r = nextRandom(4);
+    if (r == 0) return i;
+    if (r == 1) return j;
+    if (r == 2) return k;
+    return l;
 }
 
 int Layer::random(int i, int j) {
-    if (nextRandom(2)) {
-        return j;
+    if (nextRandom(2) == 0) {
+        return i;
     }
-
-    return i;
+    return j;
 }
 
 int Layer::modeOrRandom(int i, int j, int k, int l) {
     if (j == k && k == l) {
         return j;
-    } else if (i == j && i == k) {
-        return i;
-    } else if (i == j && i == l) {
-        return i;
-    } else if (i == k && i == l) {
-        return i;
-    } else if (i == j && k != l) {
-        return i;
-    } else if (i == k && j != l) {
-        return i;
-    } else if (i == l && j != k) {
-        return i;
-    } else if (j == k && i != l) {
-        return j;
-    } else if (j == l && i != k) {
-        return j;
-    } else {
-        return k == l && i != j ? k : random(i, j, k, l);
     }
+    if (i == j && j == k) {
+        return i;
+    }
+    if (i == j && j == l) {
+        return i;
+    }
+    if (i == k && k == l) {
+        return i;
+    }
+    if (i == j && k != l) {
+        return i;
+    }
+    if (i == k && j != l) {
+        return i;
+    }
+    if (i == l && j != k) {
+        return i;
+    }
+    if (j == k && i != l) {
+        return j;
+    }
+    if (j == l && i != k) {
+        return j;
+    }
+    if (k == l && i != j) {
+        return k;
+    }
+    
+    return random(i, j, k, l);
 }
