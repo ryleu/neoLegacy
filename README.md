@@ -21,7 +21,7 @@ Users can download our [Nightly Build](https://github.com/pieeebot/neoLegacy/rel
 Huge thanks to the following projects:
 
 - [Patoke/LCERenewed](https://github.com/Patoke/LCERenewed) - for some of the patches that required deep decompilation
-- [itsRevela/LCE-Revelations](https://github.com/itsRevela/LCE-Revelations) - for providing a stable project for neoLegacy to continue with
+- [itsRevela/LCE-Revelations](https://git.revela.dev/itsRevela/LCE-Revelations) - for providing a stable project for neoLegacy to continue with
 - [GabsPuNs/Project-Zenith](https://github.com/GabsPuNs/Project-Zenith-Main) - for providing us with their implemention of the Classic Crafting Feature.
 
 # Build & Run
