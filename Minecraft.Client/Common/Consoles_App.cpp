@@ -27,6 +27,9 @@
 #include "../GameMode.h"
 #include "../Xbox/Social/SocialManager.h"
 #include "Tutorial/TutorialMode.h"
+#ifdef _WINDOWS64
+#include "../Windows64/Network/WinsockNetLayer.h" // HUCKLE - added for quit on disconnect
+#endif
 #if defined _XBOX || defined _WINDOWS64
 #include "../Xbox/XML/ATGXmlParser.h"
 #include "../Xbox/XML/xmlFilesCallback.h"
@@ -3387,6 +3390,15 @@ void CMinecraftApp::HandleXuiActions(void)
 			case eAppAction_ExitWorld:
 
 				SetAction(i,eAppAction_Idle);
+
+				// HUCKLE - added for quit game on disconnect
+#ifdef _WINDOWS64
+				if(g_Win64MultiplayerQuitOnDisconnect == true)
+				{
+					app.ExitGame();
+					return;
+				}
+#endif
 
 				// If we're already leaving don't exit
 				if (g_NetworkManager.IsLeavingGame())
