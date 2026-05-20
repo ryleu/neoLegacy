@@ -12,8 +12,8 @@ AddEdgeLayer::AddEdgeLayer(int32_t seed, int64_t seedMixup,std::shared_ptr<Layer
 
 intArray AddEdgeLayer::getArea(int xo, int yo, int w, int h)
 {
-    if (mode == 1) return heatIce(xo, yo, w, h);
-    if (mode == 2) return introduceSpecial(xo, yo, w, h);
+    if (mode == MODE_HEAT_ICE)   return heatIce(xo, yo, w, h);
+    if (mode == MODE_SPECIAL)    return introduceSpecial(xo, yo, w, h);
     return coolWarm(xo, yo, w, h);
 }
 
@@ -23,10 +23,14 @@ intArray AddEdgeLayer::coolWarm(int xo, int yo, int w, int h)
     intArray b = parent->getArea(xo - 1, yo - 1, w + 2, h + 2);
     intArray result = IntCache::allocate(w * h);
     int stride = w + 2;
+
     for (int iy = 0; iy < h; ++iy)
     {
         for (int ix = 0; ix < w; ++ix)
         {
+            
+            initRandom(ix + xo, iy + yo);
+
             int center = b[(ix + 1) + (iy + 1) * stride];
             if (center == 1)
             {
@@ -34,8 +38,10 @@ intArray AddEdgeLayer::coolWarm(int xo, int yo, int w, int h)
                 int east  = b[(ix + 2) + (iy + 1) * stride];
                 int west  = b[(ix + 0) + (iy + 1) * stride];
                 int south = b[(ix + 1) + (iy + 2) * stride];
+                
                 bool hasCold = (north == 3 || east == 3 || west == 3 || south == 3);
                 bool hasIcy  = (north == 4 || east == 4 || west == 4 || south == 4);
+                
                 if (hasCold || hasIcy)
                     center = 2;
             }
@@ -51,11 +57,12 @@ intArray AddEdgeLayer::heatIce(int xo, int yo, int w, int h)
     intArray b = parent->getArea(xo - 1, yo - 1, w + 2, h + 2);
     intArray result = IntCache::allocate(w * h);
     int stride = w + 2;
+    
     for (int iy = 0; iy < h; ++iy)
     {
         for (int ix = 0; ix < w; ++ix)
         {
-            initRandom(ix + xo, iy + yo);
+            
             int center = b[(ix + 1) + (iy + 1) * stride];
             if (center == 4)
             {
@@ -63,8 +70,10 @@ intArray AddEdgeLayer::heatIce(int xo, int yo, int w, int h)
                 int east  = b[(ix + 2) + (iy + 1) * stride];
                 int west  = b[(ix + 0) + (iy + 1) * stride];
                 int south = b[(ix + 1) + (iy + 2) * stride];
+                
                 bool nearWarm = (north == 2 || east == 2 || west == 2 || south == 2);
                 bool nearHot  = (north == 1 || east == 1 || west == 1 || south == 1);
+                
                 if (nearHot || nearWarm)
                     center = 3;
             }
@@ -74,7 +83,6 @@ intArray AddEdgeLayer::heatIce(int xo, int yo, int w, int h)
     return result;
 }
 
-
 intArray AddEdgeLayer::introduceSpecial(int xo, int yo, int w, int h)
 {
     intArray b = parent->getArea(xo, yo, w, h);
@@ -82,7 +90,7 @@ intArray AddEdgeLayer::introduceSpecial(int xo, int yo, int w, int h)
 
     for (int iy = 0; iy < h; ++iy)
     {
-        for (int ix = 0; ix < w; ++ix)
+        for (int ix = 0; ix < w; ++ix) 
         {
             initRandom(ix + xo, iy + yo);
 

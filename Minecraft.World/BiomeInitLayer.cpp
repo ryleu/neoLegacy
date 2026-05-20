@@ -163,7 +163,7 @@ intArray BiomeInitLayer::getArea(int xo, int yo, int w, int h)
                     else
                     {
                         
-                        result[x + y * w] = v19;
+                        result[x + y * w] = Biome::mushroomIsland->id;
                     }
                 }
             }
