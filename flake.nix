@@ -469,6 +469,9 @@
             xwin
             rsync
 
+            # .NET SDK for FourKit server
+            dotnetCorePackages.sdk_10_0
+
             # Wine for testing
             winePackage
             winetricks
@@ -481,8 +484,6 @@
             cacert
           ];
 
-          XWIN_CACHE = "$HOME/.cache/xwin";
-
           shellHook = ''
             echo "LCE-Revelations development shell"
             echo ""
@@ -491,13 +492,14 @@
             echo "  nix build .#server   # Build server package"
             echo ""
             echo "Development build (in-tree):"
-            echo "  minecraft-lce-build [source_dir] [Release|Debug]"
+            echo "  ./build-linux.sh [source_dir] [Release|Debug]"
             echo ""
             echo "Run:"
             echo "  nix run .#client"
             echo "  nix run .#server"
             echo ""
             echo "Environment variables:"
+            echo "  XWIN_CACHE  - Windows SDK cache (default: \$PWD/.xwin)"
             echo "  MC_PORT     - Server port (default: 25565)"
             echo "  MC_BIND     - Server bind address (default: 0.0.0.0)"
             echo "  MC_DATA_DIR - Persistent data directory"
