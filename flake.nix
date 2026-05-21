@@ -4,9 +4,13 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
+    fourjlibs = {
+      url = "github:Patoke/4JLibs";
+      flake = false;
+    };
   };
 
-  outputs = { self, nixpkgs, flake-utils }:
+  outputs = { self, nixpkgs, flake-utils, fourjlibs }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs {
@@ -24,7 +28,7 @@
 
           outputHashAlgo = "sha256";
           outputHashMode = "recursive";
-          outputHash = "sha256-ksSytBUjv/tD3IJzHM9BkAzFjJ+JAGD353Pur0G4rQE=";
+          outputHash = "sha256-UFQjsFVBwcF/9e9tVFoG0Z1JySxyTnFqoaRwr/tUWzA=";
 
           nativeBuildInputs = [ pkgs.xwin pkgs.cacert pkgs.rsync ];
 
@@ -50,7 +54,44 @@
           dontFixup = true;
         };
 
-        # Helper to create case-insensitive symlinks for SDK headers/libs
+        # Pre fetch NuGet packages for FourKit (dotnet publish --self-contained needs win-x64 runtime)
+        fourkitNugetDeps = pkgs.stdenvNoCC.mkDerivation {
+          pname = "fourkit-nuget-deps";
+          version = "10.0";
+
+          outputHashAlgo = "sha256";
+          outputHashMode = "recursive";
+          outputHash = "sha256-eEkU0MugnFSNvVYvd5V5xLK4oNcLgZcXxMYSuiYMPbA=";
+
+          nativeBuildInputs = [ pkgs.cacert ];
+
+          dontUnpack = true;
+
+          buildPhase = ''
+            export HOME=$(mktemp -d)
+            export DOTNET_CLI_TELEMETRY_OPTOUT=1
+            export DOTNET_NOLOGO=1
+            export SSL_CERT_FILE="${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
+
+            # Use the unwrapped SDK to allow NuGet network access
+            DOTNET="${pkgs.dotnetCorePackages.sdk_10_0.passthru.unwrapped}/share/dotnet/dotnet"
+
+            # Copy csproj to writable location (dotnet needs to write obj/)
+            WORK=$(mktemp -d)
+            cp ${./.}/Minecraft.Server.FourKit/Minecraft.Server.FourKit.csproj "$WORK/"
+            cp ${./.}/global.json "$WORK/"
+
+            $DOTNET restore "$WORK/Minecraft.Server.FourKit.csproj" \
+              --runtime win-x64 \
+              --packages "$out" \
+              --source https://api.nuget.org/v3/index.json
+          '';
+
+          dontInstall = true;
+          dontFixup = true;
+        };
+
+        # Helper to make case insensitive symlinks for SDK headers/libs
         sdkWithSymlinks = pkgs.runCommand "windows-sdk-symlinked" {} ''
           cp -r ${windowsSdk} $out
           chmod -R u+w $out
@@ -103,6 +144,13 @@
                 pkgs.lib.hasPrefix "result-" baseName);
           };
 
+          # Patch in the 4JLibs submodule (flakes don't fetch submodules)
+          postUnpack = ''
+            rm -rf source/Minecraft.Client/Windows64/4JLibs
+            cp -r ${fourjlibs} source/Minecraft.Client/Windows64/4JLibs
+            chmod -R u+w source/Minecraft.Client/Windows64/4JLibs
+          '';
+
           nativeBuildInputs = with pkgs; [
             llvmPackages.clang-unwrapped  # provides clang-cl
             llvmPackages.lld               # provides lld-link
@@ -110,6 +158,8 @@
             cmake
             ninja
             rsync
+            winePackage                    # needed to run fxc.exe during build
+            dotnetCorePackages.sdk_10_0    # needed for FourKit server
           ];
 
           # Set up environment for clang-cl
@@ -120,6 +170,11 @@
 
             export INCLUDE="$WINSDK/crt/include;$WINSDK/sdk/include/um;$WINSDK/sdk/include/ucrt;$WINSDK/sdk/include/shared"
             export LIB="$WINSDK/crt/lib/x86_64;$WINSDK/sdk/lib/um/x86_64;$WINSDK/sdk/lib/ucrt/x86_64"
+
+            # Set up NuGet packages cache for FourKit dotnet publish
+            export NUGET_PACKAGES="${fourkitNugetDeps}"
+            export DOTNET_CLI_TELEMETRY_OPTOUT=1
+            export DOTNET_NOLOGO=1
 
             cmake -S . -B build \
               -G Ninja \
@@ -135,10 +190,14 @@
               -DIGGY_LIBS="iggy_w64.lib;iggyperfmon_w64.lib;iggyexpruntime_w64.lib" \
               -DCMAKE_SYSTEM_NAME=Windows \
               -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded \
-              -DCMAKE_C_FLAGS="/MT -fms-compatibility -fms-extensions --target=x86_64-pc-windows-msvc -imsvc $WINSDK/crt/include -imsvc $WINSDK/sdk/include/ucrt -imsvc $WINSDK/sdk/include/um -imsvc $WINSDK/sdk/include/shared" \
-              -DCMAKE_CXX_FLAGS="/MT -fms-compatibility -fms-extensions --target=x86_64-pc-windows-msvc -imsvc $WINSDK/crt/include -imsvc $WINSDK/sdk/include/ucrt -imsvc $WINSDK/sdk/include/um -imsvc $WINSDK/sdk/include/shared" \
+              -DCMAKE_C_FLAGS="/MT -Wno-non-pod-varargs -fms-compatibility -fms-extensions --target=x86_64-pc-windows-msvc -imsvc $WINSDK/crt/include -imsvc $WINSDK/sdk/include/ucrt -imsvc $WINSDK/sdk/include/um -imsvc $WINSDK/sdk/include/shared" \
+              -DCMAKE_CXX_FLAGS="/MT -Wno-non-pod-varargs -fms-compatibility -fms-extensions --target=x86_64-pc-windows-msvc -imsvc $WINSDK/crt/include -imsvc $WINSDK/sdk/include/ucrt -imsvc $WINSDK/sdk/include/um -imsvc $WINSDK/sdk/include/shared" \
               -DCMAKE_ASM_MASM_FLAGS="-m64" \
-              -DCMAKE_EXE_LINKER_FLAGS="-libpath:$WINSDK/crt/lib/x86_64 -libpath:$WINSDK/sdk/lib/um/x86_64 -libpath:$WINSDK/sdk/lib/ucrt/x86_64"
+              -DCMAKE_EXE_LINKER_FLAGS="-libpath:$WINSDK/crt/lib/x86_64 -libpath:$WINSDK/sdk/lib/um/x86_64 -libpath:$WINSDK/sdk/lib/ucrt/x86_64" \
+              -DCMAKE_RC_FLAGS="/I $WINSDK/sdk/include/shared /I $WINSDK/sdk/include/um /I $WINSDK/sdk/include/ucrt"
+
+            # Patch shebangs in generated scripts (fxc wine wrapper)
+            patchShebangs build/tools
 
             runHook postConfigure
           '';
@@ -152,22 +211,29 @@
           installPhase = ''
             runHook preInstall
 
-            mkdir -p $out/{client,server}
+            mkdir -p $out/{client,server,fourkit}
 
             # Install client
             cp build/Minecraft.Client/Minecraft.Client.exe $out/client/
-            cp build/Minecraft.Client/iggy_w64.dll $out/client/ 2>/dev/null || true
-            cp -r build/Minecraft.Client/Common $out/client/ 2>/dev/null || true
-            cp -r build/Minecraft.Client/music $out/client/ 2>/dev/null || true
-            cp -r build/Minecraft.Client/Windows64 $out/client/ 2>/dev/null || true
-            cp -r build/Minecraft.Client/Windows64Media $out/client/ 2>/dev/null || true
+            for asset in iggy_w64.dll Common music Windows64 Windows64Media; do
+              [ -e "build/Minecraft.Client/$asset" ] && \
+                cp -r "build/Minecraft.Client/$asset" $out/client/ || true
+            done
             cp -r build/Minecraft.Client/iggy* $out/client/ 2>/dev/null || true
 
             # Install server
-            cp build/Minecraft.Server/Minecraft.Server.exe $out/server/
-            cp build/Minecraft.Server/iggy_w64.dll $out/server/ 2>/dev/null || true
-            cp -r build/Minecraft.Server/Common $out/server/ 2>/dev/null || true
-            cp -r build/Minecraft.Server/Windows64 $out/server/ 2>/dev/null || true
+            cp build/Minecraft.Server/Release/Minecraft.Server.exe $out/server/
+            for asset in iggy_w64.dll Common Windows64 Windows64Media; do
+              [ -e "build/Minecraft.Server/Release/$asset" ] && \
+                cp -r "build/Minecraft.Server/Release/$asset" $out/server/ || true
+            done
+
+            # Install FourKit server
+            cp build/Minecraft.Server.FourKit/Release/Minecraft.Server.exe $out/fourkit/
+            for asset in iggy_w64.dll Common Windows64 Windows64Media plugins runtime; do
+              [ -e "build/Minecraft.Server.FourKit/Release/$asset" ] && \
+                cp -r "build/Minecraft.Server.FourKit/Release/$asset" $out/fourkit/ || true
+            done
 
             runHook postInstall
           '';
@@ -450,6 +516,9 @@
 
           # Unwrapped (just the Windows executables)
           unwrapped = minecraft-lce-unwrapped;
+
+          # NuGet deps for FourKit (for debugging)
+          fourkit-nuget-deps = fourkitNugetDeps;
 
           # Windows SDK (for debugging)
           windows-sdk = sdkWithSymlinks;
