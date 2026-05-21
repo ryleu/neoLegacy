@@ -115,27 +115,6 @@
           ln -sf $out/sdk/lib/um/x86_64/ws2_32.lib $out/sdk/lib/um/x86_64/Ws2_32.lib 2>/dev/null || true
         '';
 
-        # CMake toolchain file for clang-cl cross-compilation
-        clangClToolchain = pkgs.writeText "clang-cl-toolchain.cmake" ''
-          set(CMAKE_SYSTEM_NAME Windows)
-          set(CMAKE_SYSTEM_PROCESSOR AMD64)
-
-          set(CMAKE_C_COMPILER clang-cl)
-          set(CMAKE_CXX_COMPILER clang-cl)
-          set(CMAKE_RC_COMPILER llvm-rc)
-          set(CMAKE_ASM_MASM_COMPILER llvm-ml)
-          set(CMAKE_AR llvm-lib)
-          set(CMAKE_LINKER lld-link)
-
-          set(CMAKE_CROSSCOMPILING TRUE)
-
-          set(CMAKE_C_LINK_EXECUTABLE "<CMAKE_LINKER> <LINK_FLAGS> <OBJECTS> -out:<TARGET> <LINK_LIBRARIES>")
-          set(CMAKE_CXX_LINK_EXECUTABLE "<CMAKE_LINKER> <LINK_FLAGS> <OBJECTS> -out:<TARGET> <LINK_LIBRARIES>")
-
-          add_compile_options(-fms-compatibility -fms-extensions)
-          add_compile_definitions(_WIN64 _AMD64_ WIN32_LEAN_AND_MEAN)
-        '';
-
         # The main build derivation
         minecraft-lce-unwrapped = pkgs.stdenv.mkDerivation {
           pname = "minecraft-lce-unwrapped";
@@ -176,79 +155,46 @@
             dotnetCorePackages.sdk_10_0 # needed for FourKit server
           ];
 
-          # Set up environment for clang-cl
-          WINSDK = sdkWithSymlinks;
-
           configurePhase = ''
             runHook preConfigure
 
-            export INCLUDE="$WINSDK/crt/include;$WINSDK/sdk/include/um;$WINSDK/sdk/include/ucrt;$WINSDK/sdk/include/shared"
-            export LIB="$WINSDK/crt/lib/x86_64;$WINSDK/sdk/lib/um/x86_64;$WINSDK/sdk/lib/ucrt/x86_64"
+            # Point build-linux.sh at the pre-downloaded Windows SDK
+            export XWIN_CACHE=$(mktemp -d)
+            ln -s ${sdkWithSymlinks} "$XWIN_CACHE/splat"
 
-            # Set up NuGet packages cache for FourKit dotnet publish
+            # NuGet packages for FourKit dotnet publish
             export NUGET_PACKAGES="${fourkitNugetDeps}"
             export DOTNET_CLI_TELEMETRY_OPTOUT=1
             export DOTNET_NOLOGO=1
 
-            cmake -S . -B build \
-              -G Ninja \
-              -DCMAKE_BUILD_TYPE=Release \
-              -DCMAKE_TOOLCHAIN_FILE=${clangClToolchain} \
-              -DCMAKE_C_COMPILER=clang-cl \
-              -DCMAKE_CXX_COMPILER=clang-cl \
-              -DCMAKE_LINKER=lld-link \
-              -DCMAKE_RC_COMPILER=llvm-rc \
-              -DCMAKE_MT=llvm-mt \
-              -DPLATFORM_DEFINES="_WINDOWS64" \
-              -DPLATFORM_NAME="Windows64" \
-              -DIGGY_LIBS="iggy_w64.lib;iggyperfmon_w64.lib;iggyexpruntime_w64.lib" \
-              -DCMAKE_SYSTEM_NAME=Windows \
-              -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded \
-              -DCMAKE_C_FLAGS="/MT -Wno-non-pod-varargs -fms-compatibility -fms-extensions --target=x86_64-pc-windows-msvc -imsvc $WINSDK/crt/include -imsvc $WINSDK/sdk/include/ucrt -imsvc $WINSDK/sdk/include/um -imsvc $WINSDK/sdk/include/shared" \
-              -DCMAKE_CXX_FLAGS="/MT -Wno-non-pod-varargs -fms-compatibility -fms-extensions --target=x86_64-pc-windows-msvc -imsvc $WINSDK/crt/include -imsvc $WINSDK/sdk/include/ucrt -imsvc $WINSDK/sdk/include/um -imsvc $WINSDK/sdk/include/shared" \
-              -DCMAKE_ASM_MASM_FLAGS="-m64" \
-              -DCMAKE_EXE_LINKER_FLAGS="-libpath:$WINSDK/crt/lib/x86_64 -libpath:$WINSDK/sdk/lib/um/x86_64 -libpath:$WINSDK/sdk/lib/ucrt/x86_64" \
-              -DCMAKE_RC_FLAGS="/I $WINSDK/sdk/include/shared /I $WINSDK/sdk/include/um /I $WINSDK/sdk/include/ucrt"
+            # Configure build-linux.sh variables
+            export SOURCE_DIR=.
+            export BUILD_TYPE=Release
+            export INSTALL_PREFIX=$out
+
+            # Source the build script for its functions
+            source ./build-linux.sh
+
+            BUILD_DIR="$SOURCE_DIR/build/windows64-clang"
+            mkdir -p "$BUILD_DIR"
+
+            do_cmake_configure
 
             # Patch shebangs in generated scripts (fxc wine wrapper)
-            patchShebangs build/tools
+            patchShebangs "$BUILD_DIR/tools" 2>/dev/null || true
 
             runHook postConfigure
           '';
 
           buildPhase = ''
             runHook preBuild
-            cmake --build build --config Release -j $NIX_BUILD_CORES
+            do_build
             runHook postBuild
           '';
 
           installPhase = ''
             runHook preInstall
-
-            mkdir -p $out/{client,server,fourkit}
-
-            # Install client
-            cp build/Minecraft.Client/Minecraft.Client.exe $out/client/
-            for asset in iggy_w64.dll Common music Windows64 Windows64Media; do
-              [ -e "build/Minecraft.Client/$asset" ] && \
-                cp -r "build/Minecraft.Client/$asset" $out/client/ || true
-            done
-            cp -r build/Minecraft.Client/iggy* $out/client/ 2>/dev/null || true
-
-            # Install server
-            cp build/Minecraft.Server/Release/Minecraft.Server.exe $out/server/
-            for asset in iggy_w64.dll Common Windows64 Windows64Media; do
-              [ -e "build/Minecraft.Server/Release/$asset" ] && \
-                cp -r "build/Minecraft.Server/Release/$asset" $out/server/ || true
-            done
-
-            # Install FourKit server
-            cp build/Minecraft.Server.FourKit/Release/Minecraft.Server.exe $out/fourkit/
-            for asset in iggy_w64.dll Common Windows64 Windows64Media plugins runtime; do
-              [ -e "build/Minecraft.Server.FourKit/Release/$asset" ] && \
-                cp -r "build/Minecraft.Server.FourKit/Release/$asset" $out/fourkit/ || true
-            done
-
+            do_install
             runHook postInstall
           '';
 
@@ -466,58 +412,10 @@
             rsync
             coreutils
             cacert
+            winePackage
           ];
           text = ''
-            set -euo pipefail
-
-            SOURCE_DIR="''${1:-.}"
-            BUILD_TYPE="''${2:-Release}"
-            XWIN_CACHE="''${XWIN_CACHE:-$HOME/.cache/xwin}"
-
-            export XWIN_CACHE
-
-            echo "[info] Checking Windows SDK cache at $XWIN_CACHE"
-
-            if [[ ! -d "$XWIN_CACHE/splat" ]]; then
-              echo "[info] Downloading Windows SDK and CRT via xwin..."
-              mkdir -p "$XWIN_CACHE"
-              xwin --accept-license splat --output "$XWIN_CACHE/splat"
-            else
-              echo "[info] Using cached Windows SDK"
-            fi
-
-            WINSDK="$XWIN_CACHE/splat"
-
-            export INCLUDE="$WINSDK/crt/include;$WINSDK/sdk/include/um;$WINSDK/sdk/include/ucrt;$WINSDK/sdk/include/shared"
-            export LIB="$WINSDK/crt/lib/x86_64;$WINSDK/sdk/lib/um/x86_64;$WINSDK/sdk/lib/ucrt/x86_64"
-
-            BUILD_DIR="$SOURCE_DIR/build/windows64-clang"
-            mkdir -p "$BUILD_DIR"
-
-            echo "[info] Configuring with CMake..."
-            cmake -S "$SOURCE_DIR" -B "$BUILD_DIR" \
-              -G Ninja \
-              -DCMAKE_BUILD_TYPE="$BUILD_TYPE" \
-              -DCMAKE_TOOLCHAIN_FILE="${clangClToolchain}" \
-              -DCMAKE_C_COMPILER=clang-cl \
-              -DCMAKE_CXX_COMPILER=clang-cl \
-              -DCMAKE_LINKER=lld-link \
-              -DCMAKE_RC_COMPILER=llvm-rc \
-              -DCMAKE_MT=llvm-mt \
-              -DPLATFORM_DEFINES="_WINDOWS64" \
-              -DPLATFORM_NAME="Windows64" \
-              -DIGGY_LIBS="iggy_w64.lib;iggyperfmon_w64.lib;iggyexpruntime_w64.lib" \
-              -DCMAKE_SYSTEM_NAME=Windows \
-              -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded \
-              -DCMAKE_C_FLAGS="/MT -fms-compatibility -fms-extensions --target=x86_64-pc-windows-msvc -imsvc $WINSDK/crt/include -imsvc $WINSDK/sdk/include/ucrt -imsvc $WINSDK/sdk/include/um -imsvc $WINSDK/sdk/include/shared" \
-              -DCMAKE_CXX_FLAGS="/MT -fms-compatibility -fms-extensions --target=x86_64-pc-windows-msvc -imsvc $WINSDK/crt/include -imsvc $WINSDK/sdk/include/ucrt -imsvc $WINSDK/sdk/include/um -imsvc $WINSDK/sdk/include/shared" \
-              -DCMAKE_ASM_MASM_FLAGS="-m64" \
-              -DCMAKE_EXE_LINKER_FLAGS="-libpath:$WINSDK/crt/lib/x86_64 -libpath:$WINSDK/sdk/lib/um/x86_64 -libpath:$WINSDK/sdk/lib/ucrt/x86_64"
-
-            echo "[info] Building..."
-            cmake --build "$BUILD_DIR" --config "$BUILD_TYPE" -j "$(nproc)"
-
-            echo "[info] Build complete! Output in $BUILD_DIR"
+            exec bash "${./build-linux.sh}" "$@"
           '';
         };
 
