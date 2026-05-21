@@ -25,8 +25,13 @@
           config.allowUnfree = true;
         };
 
-        # Version info
-        version = "1.6.0560.0";
+        # Version derived from network protocol version in cmake/GenerateBuildVer.cmake
+        buildNumber = builtins.head (
+          builtins.match ".*set\\(BUILD_NUMBER ([0-9]+)\\).*" (
+            builtins.readFile ./cmake/GenerateBuildVer.cmake
+          )
+        );
+        version = "0.${buildNumber}.0";
 
         # Windows SDK downloaded via xwin (fixed-output derivation)
         windowsSdk = pkgs.stdenvNoCC.mkDerivation {
