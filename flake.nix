@@ -10,8 +10,15 @@
     };
   };
 
-  outputs = { self, nixpkgs, flake-utils, fourjlibs }:
-    flake-utils.lib.eachDefaultSystem (system:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      flake-utils,
+      fourjlibs,
+    }:
+    flake-utils.lib.eachDefaultSystem (
+      system:
       let
         pkgs = import nixpkgs {
           inherit system;
@@ -30,7 +37,11 @@
           outputHashMode = "recursive";
           outputHash = "sha256-UFQjsFVBwcF/9e9tVFoG0Z1JySxyTnFqoaRwr/tUWzA=";
 
-          nativeBuildInputs = [ pkgs.xwin pkgs.cacert pkgs.rsync ];
+          nativeBuildInputs = [
+            pkgs.xwin
+            pkgs.cacert
+            pkgs.rsync
+          ];
 
           dontUnpack = true;
 
@@ -92,7 +103,7 @@
         };
 
         # Helper to make case insensitive symlinks for SDK headers/libs
-        sdkWithSymlinks = pkgs.runCommand "windows-sdk-symlinked" {} ''
+        sdkWithSymlinks = pkgs.runCommand "windows-sdk-symlinked" { } ''
           cp -r ${windowsSdk} $out
           chmod -R u+w $out
 
@@ -132,16 +143,19 @@
 
           src = pkgs.lib.cleanSourceWith {
             src = ./.;
-            filter = path: type:
+            filter =
+              path: type:
               let
                 baseName = baseNameOf path;
               in
               # Exclude build directories and other non-source files
-              !(baseName == "build" ||
-                baseName == "result" ||
-                baseName == ".git" ||
-                baseName == ".direnv" ||
-                pkgs.lib.hasPrefix "result-" baseName);
+              !(
+                baseName == "build"
+                || baseName == "result"
+                || baseName == ".git"
+                || baseName == ".direnv"
+                || pkgs.lib.hasPrefix "result-" baseName
+              );
           };
 
           # Patch in the 4JLibs submodule (flakes don't fetch submodules)
@@ -152,14 +166,14 @@
           '';
 
           nativeBuildInputs = with pkgs; [
-            llvmPackages.clang-unwrapped  # provides clang-cl
-            llvmPackages.lld               # provides lld-link
-            llvmPackages.llvm              # provides llvm-rc, llvm-ml, llvm-lib, llvm-mt
+            llvmPackages.clang-unwrapped # provides clang-cl
+            llvmPackages.lld # provides lld-link
+            llvmPackages.llvm # provides llvm-rc, llvm-ml, llvm-lib, llvm-mt
             cmake
             ninja
             rsync
-            winePackage                    # needed to run fxc.exe during build
-            dotnetCorePackages.sdk_10_0    # needed for FourKit server
+            winePackage # needed to run fxc.exe during build
+            dotnetCorePackages.sdk_10_0 # needed for FourKit server
           ];
 
           # Set up environment for clang-cl
@@ -275,40 +289,40 @@
             cat > $out/bin/minecraft-lce-client << 'WRAPPER'
             #!/usr/bin/env bash
             set -euo pipefail
-            
+
             GAME_DIR="@gameDir@"
             PERSIST_DIR="''${MC_DATA_DIR:-$HOME/.local/share/minecraft-lce-client}"
-            
+
             export WINEARCH=win64
             export WINEPREFIX="''${WINEPREFIX:-$HOME/@winePrefixBase@-client}"
-            
+
             # Wine performance settings
             export WINEDLLOVERRIDES="winemenubuilder.exe=d"
             export WINEESYNC=1
             export WINEFSYNC=1
             export DXVK_LOG_LEVEL=none
-            
+
             mkdir -p "$PERSIST_DIR"
             mkdir -p "$WINEPREFIX"
-            
+
             # Create working directory with symlinks to immutable store
             WORK_DIR="$(mktemp -d)"
             trap 'rm -rf "$WORK_DIR"' EXIT
-            
+
             cp -rs "$GAME_DIR"/* "$WORK_DIR/"
             chmod -R u+w "$WORK_DIR"
-            
+
             # Setup persistent data directory
             mkdir -p "$PERSIST_DIR/GameHDD"
             rm -rf "$WORK_DIR/Windows64/GameHDD" 2>/dev/null || true
             ln -sf "$PERSIST_DIR/GameHDD" "$WORK_DIR/Windows64/GameHDD"
-            
+
             cd "$WORK_DIR"
-            
+
             echo "[info] Starting Minecraft LCE client"
             echo "[info] Data directory: $PERSIST_DIR"
             echo "[info] Wine prefix: $WINEPREFIX"
-            
+
             exec wine "$WORK_DIR/Minecraft.Client.exe" "$@"
             WRAPPER
 
@@ -357,33 +371,33 @@
             cat > $out/bin/minecraft-lce-server << 'WRAPPER'
             #!/usr/bin/env bash
             set -euo pipefail
-            
+
             GAME_DIR="@gameDir@"
             SERVER_PORT="''${MC_PORT:-25565}"
             SERVER_BIND_IP="''${MC_BIND:-0.0.0.0}"
             PERSIST_DIR="''${MC_DATA_DIR:-$HOME/.local/share/minecraft-lce-server}"
-            
+
             export WINEARCH=win64
             export WINEPREFIX="''${WINEPREFIX:-$HOME/@winePrefixBase@-server}"
-            
+
             # Wine settings
             export WINEDLLOVERRIDES="winemenubuilder.exe=d"
             export WINEESYNC=1
             export WINEFSYNC=1
-            
+
             mkdir -p "$PERSIST_DIR"
             mkdir -p "$WINEPREFIX"
-            
+
             # Create working directory with symlinks to immutable store
             WORK_DIR="$(mktemp -d)"
             trap 'rm -rf "$WORK_DIR"' EXIT
-            
+
             cp -rs "$GAME_DIR"/* "$WORK_DIR/"
             chmod -R u+w "$WORK_DIR"
-            
+
             # Setup persistent data
             mkdir -p "$PERSIST_DIR/GameHDD"
-            
+
             for file in server.properties banned-players.json banned-ips.json; do
               if [[ ! -f "$PERSIST_DIR/$file" ]]; then
                 if [[ -f "$WORK_DIR/$file" ]]; then
@@ -394,12 +408,12 @@
               fi
               ln -sf "$PERSIST_DIR/$file" "$WORK_DIR/$file"
             done
-            
+
             rm -rf "$WORK_DIR/Windows64/GameHDD" 2>/dev/null || true
             ln -sf "$PERSIST_DIR/GameHDD" "$WORK_DIR/Windows64/GameHDD"
-            
+
             cd "$WORK_DIR"
-            
+
             # Start Xvfb if no display (server may require a virtual display)
             if [[ -z "''${DISPLAY:-}" ]]; then
               export DISPLAY=":99"
@@ -409,11 +423,11 @@
               sleep 1
               echo "[info] Started Xvfb on $DISPLAY"
             fi
-            
+
             echo "[info] Starting Minecraft LCE server on $SERVER_BIND_IP:$SERVER_PORT"
             echo "[info] Data directory: $PERSIST_DIR"
             echo "[info] Wine prefix: $WINEPREFIX"
-            
+
             exec wine "$WORK_DIR/Minecraft.Server.exe" -port "$SERVER_PORT" -bind "$SERVER_BIND_IP" "$@"
             WRAPPER
 
